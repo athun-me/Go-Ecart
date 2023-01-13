@@ -66,3 +66,39 @@ func UserSignUP(c *gin.Context) {
 		return
 	}
 }
+
+func Login(c *gin.Context) {
+	type userData struct {
+		Email    string
+		Password string
+	}
+
+	var user userData
+	if c.Bind(&user) != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Bad request",
+		})
+		return
+	}
+	var checkUser models.User
+	db := config.DBconnect()
+	result := db.First(&checkUser, "email LIKE ?", user.Email)
+	if result.Error != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"user": "User NOT found",
+		})
+		return
+	}
+
+	err := bcrypt.CompareHashAndPassword([]byte(checkUser.Password), []byte(user.Password))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Password is incorrect",
+		})
+		return
+	}
+
+	c.JSON(http.StatusBadRequest, gin.H{
+		"user": checkUser,
+	})
+}

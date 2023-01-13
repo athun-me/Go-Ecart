@@ -17,7 +17,6 @@ func main() {
 	r := gin.Default()
 
 	r.POST("/signup", controls.UserSignUP)
-
-	// r.GET("/login", controls.ReadUser)
+	r.POST("/login", controls.Login)
 	r.Run()
 }

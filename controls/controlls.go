@@ -1,6 +1,7 @@
 package controls
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/athunlal/config"
@@ -14,7 +15,7 @@ func UserSignUP(c *gin.Context) {
 	type data struct {
 		Firstname   string
 		Lastname    string
-		Email       string `json:"email" validate:"required, email"`
+		Email       string
 		Password    string
 		PhoneNumber int
 	}
@@ -26,6 +27,7 @@ func UserSignUP(c *gin.Context) {
 		})
 		return
 	}
+	fmt.Println(Data.Firstname)
 	hash, err := bcrypt.GenerateFromPassword([]byte(Data.Password), 10)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -64,5 +66,3 @@ func UserSignUP(c *gin.Context) {
 		return
 	}
 }
-
-

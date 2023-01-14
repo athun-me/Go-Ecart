@@ -10,12 +10,12 @@ import (
 	"math/big"
 	"strconv"
 
-	"github.com/gin-gonic/gin"
+	// "github.com/gin-gonic/gin"
 )
 
 var Otp string
 
-func VerifyOTP(c *gin.Context) {
+func VerifyOTP() {
 	Otp, err := getRandNum()
 	if err != nil {
 		panic(err)

@@ -7,15 +7,14 @@ import (
 	"github.com/athunlal/models"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
-	"gorm.io/gorm"
 )
 
-type data struct {
+type checkUserData struct {
 	Firstname   string
 	Lastname    string
 	Email       string
 	Password    string
-	PhoneNumber string
+	PhoneNumber int
 	Otp         string
 }
 
@@ -23,7 +22,7 @@ type data struct {
 
 func UserSignUP(c *gin.Context) {
 
-	var Data data
+	var Data checkUserData
 	if c.Bind(&Data) != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Bad request",
@@ -45,7 +44,7 @@ func UserSignUP(c *gin.Context) {
 	result := db.First(&temp_user, "email LIKE ?", Data.Email)
 	if result.Error != nil {
 		user := models.User{
-			Model:       gorm.Model{},
+
 			Firstname:   Data.Firstname,
 			Lastname:    Data.Lastname,
 			Email:       Data.Email,

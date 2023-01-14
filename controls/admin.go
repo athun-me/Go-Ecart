@@ -7,19 +7,19 @@ import (
 	"github.com/athunlal/models"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
-	"gorm.io/gorm"
 )
 
-type Data struct {
+type checkAdminData struct{
 	Firstname   string
 	Lastname    string
 	Email       string
 	Password    string
-	PhoneNumber string
+	PhoneNumber int
 }
 
+
 func AdminSignup(c *gin.Context) {
-	var Data data
+	var Data checkAdminData
 	if c.Bind(&Data) != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Bad request",
@@ -36,19 +36,13 @@ func AdminSignup(c *gin.Context) {
 		return
 	}
 
-	// if Data.Otp != Otp {
-	// 	c.JSON(http.StatusBadRequest, gin.H{
-	// 		"error": "Enter valid OTP",
-	// 	})
-	// 	return
-	// }
-
+	
 	db := config.DBconnect()
 
 	result := db.First(&temp_user, "email LIKE ?", Data.Email)
 	if result.Error != nil {
 		user := models.Admin{
-			Model:       gorm.Model{},
+			
 			Firstname:   Data.Firstname,
 			Lastname:    Data.Lastname,
 			Email:       Data.Email,
@@ -75,39 +69,7 @@ func AdminSignup(c *gin.Context) {
 }
 
 func AdminLogin(c *gin.Context) {
-	// type checkAdminData struct {
-	// 	Email    string
-	// 	Password string
-	// }
-
-	// var user checkAdminData
-	// if c.Bind(&user) != nil {
-	// 	c.JSON(http.StatusBadRequest, gin.H{
-	// 		"error": "Bad request",
-	// 	})
-	// 	return
-	// }
-
-	// var adminData models.Admin
-	// db := config.DBconnect()
-	// result := db.First(&adminData, "email LIKE ?", user.Email)
-	// if result != nil {
-	// 	c.JSON(http.StatusBadRequest, gin.H{
-	// 		"error": "User not found",
-	// 	})
-	// 	return
-	// }
-	// err := bcrypt.CompareHashAndPassword([]byte(adminData.Password), []byte(user.Password))
-	// if err != nil {
-	// 	c.JSON(http.StatusBadRequest, gin.H{
-	// 		"error": "error password hashing",
-	// 	})
-	// 	return
-	// }
-	// c.JSON(http.StatusBadRequest, gin.H{
-	// 	"user": adminData,
-	// })
-
+	
 	type userData struct {
 		Email    string
 		Password string

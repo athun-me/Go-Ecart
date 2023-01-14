@@ -9,4 +9,14 @@ type User struct {
 	Email       string `JSON:"email"`
 	Password    string `validate:"requierd, gte=6"`
 	PhoneNumber int
+	Otp         string
+}
+
+type Admin struct {
+	gorm.Model
+	Firstname   string
+	Lastname    string
+	Email       string
+	Password    string
+	PhoneNumber int
 }

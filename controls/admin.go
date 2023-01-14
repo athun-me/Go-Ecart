@@ -7,6 +7,7 @@ import (
 	"github.com/athunlal/models"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 type Data struct {
@@ -14,7 +15,7 @@ type Data struct {
 	Lastname    string
 	Email       string
 	Password    string
-	PhoneNumber int
+	PhoneNumber string
 }
 
 func AdminSignup(c *gin.Context) {
@@ -47,6 +48,7 @@ func AdminSignup(c *gin.Context) {
 	result := db.First(&temp_user, "email LIKE ?", Data.Email)
 	if result.Error != nil {
 		user := models.Admin{
+			Model:       gorm.Model{},
 			Firstname:   Data.Firstname,
 			Lastname:    Data.Lastname,
 			Email:       Data.Email,

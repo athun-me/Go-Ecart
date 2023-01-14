@@ -15,7 +15,7 @@ type data struct {
 	Lastname    string
 	Email       string
 	Password    string
-	PhoneNumber int
+	PhoneNumber string
 	Otp         string
 }
 

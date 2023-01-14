@@ -2,13 +2,25 @@ package models
 
 import "gorm.io/gorm"
 
+// type User struct {
+// 	gorm.Model
+// 	ID          uint   `json:"id" gorm:"primaryKey;unique"  `
+// 	Firstname   string `json:"first_name"  gorm:"not null" validate:"required,min=2,max=50"`
+// 	Lastname    string `json:"last_name"    gorm:"not null"    validate:"required,min=1,max=50"`
+// 	Email       string `json:"email"   gorm:"not null;unique"  validate:"email,required"`
+// 	Password    string `json:"password" gorm:"not null"  validate:"required"`
+// 	PhoneNumber string `json:"phone"   gorm:"not null;unique" validate:"required"`
+// 	Otp         string
+// }
+
 type User struct {
 	gorm.Model
-	Firstname   string `JSON:"name" validate:"required,min=3,max=12"`
+	ID          uint
+	Firstname   string
 	Lastname    string
-	Email       string `JSON:"email"`
-	Password    string `validate:"requierd, gte=6"`
-	PhoneNumber int
+	Email       string
+	Password    string
+	PhoneNumber string
 	Otp         string
 }
 
@@ -18,5 +30,5 @@ type Admin struct {
 	Lastname    string
 	Email       string
 	Password    string
-	PhoneNumber int
+	PhoneNumber string
 }

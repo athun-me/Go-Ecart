@@ -2,7 +2,8 @@ package main
 
 import (
 	"github.com/athunlal/config"
-	"github.com/athunlal/controls"
+	"github.com/athunlal/routes"
+
 	"github.com/athunlal/initializer"
 	"github.com/gin-gonic/gin"
 )
@@ -12,15 +13,13 @@ func init() {
 	config.DBconnect()
 }
 
+var R = gin.Default()
+
 func main() {
 	gin.SetMode(gin.ReleaseMode)
-	r := gin.Default()
 
-	r.GET("/signup", controls.UserSignUP)
-	r.GET("/login", controls.UserLoginPage)
+	routes.AdminRouts(R)
+	routes.UserRouts(R)
 
-	r.POST("/adminSignup",controls.AdminSignup)
-	r.POST("/signup", controls.UserSignUP)
-	r.POST("/login", controls.UesrLogin)
-	r.Run()
+	R.Run()
 }

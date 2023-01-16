@@ -2,10 +2,15 @@ package controls
 
 import (
 	"net/http"
+	"os"
+	"time"
 
 	"github.com/athunlal/config"
 	"github.com/athunlal/models"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v4"
+
+	// "github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -16,6 +21,14 @@ type checkUserData struct {
 	Password    string
 	PhoneNumber int
 	Otp         string
+}
+
+//-------validate----------------------->
+func Validate(c *gin.Context) {
+	user, _ := c.Get("user")
+	c.JSON(http.StatusOK, gin.H{
+		"message": user,
+	})
 }
 
 //----------User signup--------------------------------------->
@@ -103,7 +116,22 @@ func UesrLogin(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusBadRequest, gin.H{
-		"user": checkUser,
+	//----------------Generating a JWT-tokent-------------------//
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"sub": user.Email,
+		"exp": time.Now().Add(time.Hour * 24 * 30).Unix(),
 	})
+	tokenString, err := token.SignedString([]byte(os.Getenv("SECERET")))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Failed to  create token",
+		})
+		return
+	}
+	c.SetSameSite(http.SameSiteLaxMode)
+	c.SetCookie("Autherization", tokenString, 3600*24*30, "", "", false, true)
+
+	c.JSON(http.StatusOK, gin.H{})
+
 }

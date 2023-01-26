@@ -19,7 +19,7 @@ func VerifyOTP() string {
 	if err != nil {
 		panic(err)
 	}
-	
+
 	sendMail(Otp)
 	return Otp
 }
@@ -60,24 +60,3 @@ func getRandNum() (string, error) {
 	}
 	return strconv.FormatInt(nBig.Int64()+1000, 10), nil
 }
-
-// func IsUserValid(c *gin.Context) bool {
-// 	VerifyOTP()
-// 	var otp string
-
-// 	if c.Bind(&otp) != nil {
-// 		c.JSON(http.StatusBadRequest, gin.H{
-// 			"error": "Bad request",
-// 		})
-// 		return false
-// 	}
-
-// 	var OtpVaild bool
-
-// 	if otp != Otp {
-// 		OtpVaild = false
-// 	} else {
-// 		OtpVaild = true
-// 	}
-// 	return OtpVaild
-// }

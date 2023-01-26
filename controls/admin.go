@@ -1,15 +1,20 @@
 package controls
 
 import (
+	"fmt"
 	"net/http"
+	"os"
+
+	"time"
 
 	"github.com/athunlal/config"
 	"github.com/athunlal/models"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
 )
 
-type checkAdminData struct{
+type checkAdminData struct {
 	Firstname   string
 	Lastname    string
 	Email       string
@@ -17,6 +22,13 @@ type checkAdminData struct{
 	PhoneNumber int
 }
 
+func ValidateAdmin(c *gin.Context) {
+	fmt.Println("reached here...........")
+	c.Get("admin")
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Admin login successfully",
+	})
+}
 
 func AdminSignup(c *gin.Context) {
 	var Data checkAdminData
@@ -36,13 +48,12 @@ func AdminSignup(c *gin.Context) {
 		return
 	}
 
-	
 	db := config.DBconnect()
 
 	result := db.First(&temp_user, "email LIKE ?", Data.Email)
 	if result.Error != nil {
 		user := models.Admin{
-			
+
 			Firstname:   Data.Firstname,
 			Lastname:    Data.Lastname,
 			Email:       Data.Email,
@@ -66,17 +77,33 @@ func AdminSignup(c *gin.Context) {
 		})
 		return
 	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"sub": temp_user.Email,
+		"exp": time.Now().Add(time.Hour * 24 * 30).Unix(),
+	})
+	tokenString, err := token.SignedString([]byte(os.Getenv("SECERET")))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Failed to  create token",
+		})
+		return
+	}
+	c.SetSameSite(http.SameSiteLaxMode)
+	c.SetCookie("Autherization", tokenString, 3600*24*30, "", "", false, true)
+
+	c.JSON(http.StatusOK, gin.H{})
 }
 
 func AdminLogin(c *gin.Context) {
-	
-	type userData struct {
+
+	type AdminData struct {
 		Email    string
 		Password string
 	}
 
-	var user userData
-	if c.Bind(&user) != nil {
+	var admin AdminData
+	if c.Bind(&admin) != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Bad request",
 		})
@@ -84,7 +111,7 @@ func AdminLogin(c *gin.Context) {
 	}
 	var checkAdmin models.Admin
 	db := config.DBconnect()
-	result := db.First(&checkAdmin, "email LIKE ?", user.Email)
+	result := db.First(&checkAdmin, "email LIKE ?", admin.Email)
 	if result.Error != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"user": "User NOT found",
@@ -92,7 +119,7 @@ func AdminLogin(c *gin.Context) {
 		return
 	}
 
-	err := bcrypt.CompareHashAndPassword([]byte(checkAdmin.Password), []byte(user.Password))
+	err := bcrypt.CompareHashAndPassword([]byte(checkAdmin.Password), []byte(admin.Password))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Password is incorrect",
@@ -100,7 +127,21 @@ func AdminLogin(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusBadRequest, gin.H{
-		"user": checkAdmin,
+	//----------------Generating a JWT-tokent-------------------//
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"sub": admin.Email,
+		"exp": time.Now().Add(time.Hour * 24 * 30).Unix(),
 	})
+	tokenString, err := token.SignedString([]byte(os.Getenv("SECERET")))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Failed to  create token",
+		})
+		return
+	}
+	c.SetSameSite(http.SameSiteLaxMode)
+	c.SetCookie("Autherization", tokenString, 3600*24*30, "", "", false, true)
+
+	c.JSON(http.StatusOK, gin.H{})
 }

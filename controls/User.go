@@ -1,7 +1,6 @@
 package controls
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -32,13 +31,6 @@ func Validate(c *gin.Context) {
 		"message": "User login successfully",
 	})
 }
-
-func Test(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"message": "User login successfully",
-	})
-}
-
 //----------User signup--------------------------------------->
 
 func UserSignUP(c *gin.Context) {
@@ -96,8 +88,6 @@ func UserSignUP(c *gin.Context) {
 //-------Otp validtioin------------->
 
 func OtpValidation(c *gin.Context) {
-
-	fmt.Println("Reached here.......")
 	type User_otp struct {
 		Otp   string
 		Email string

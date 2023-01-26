@@ -3,27 +3,25 @@ package controls
 import (
 	"crypto/rand"
 	"fmt"
-	"net/http"
+
 	"net/smtp"
 
 	// "strings"
 
 	"math/big"
 	"strconv"
-
-	"github.com/gin-gonic/gin"
+	// "github.com/gin-gonic/gin"
 	// "github.com/gin-gonic/gin"
 )
 
-var Otp string
-
-func VerifyOTP() {
+func VerifyOTP() string {
 	Otp, err := getRandNum()
 	if err != nil {
 		panic(err)
 	}
+	
 	sendMail(Otp)
-
+	return Otp
 }
 
 func sendMail(otp string) {
@@ -63,23 +61,23 @@ func getRandNum() (string, error) {
 	return strconv.FormatInt(nBig.Int64()+1000, 10), nil
 }
 
-func IsUserValid(c *gin.Context) bool {
-	VerifyOTP()
-	var otp string
+// func IsUserValid(c *gin.Context) bool {
+// 	VerifyOTP()
+// 	var otp string
 
-	if c.Bind(&otp) != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Bad request",
-		})
-		return false
-	}
-	
-	var OtpVaild bool
+// 	if c.Bind(&otp) != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{
+// 			"error": "Bad request",
+// 		})
+// 		return false
+// 	}
 
-	if otp != Otp {
-		OtpVaild = false
-	} else {
-		OtpVaild = true
-	}
-	return OtpVaild
-}
+// 	var OtpVaild bool
+
+// 	if otp != Otp {
+// 		OtpVaild = false
+// 	} else {
+// 		OtpVaild = true
+// 	}
+// 	return OtpVaild
+// }

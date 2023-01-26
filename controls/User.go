@@ -1,11 +1,13 @@
 package controls
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"time"
 
 	"github.com/athunlal/config"
+
 	"github.com/athunlal/models"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
@@ -23,19 +25,26 @@ type checkUserData struct {
 	Otp         string
 }
 
-//-------validate----------------------->
+//-------Validate----------------------->
 func Validate(c *gin.Context) {
-	user, _ := c.Get("user")
+	c.Get("user")
 	c.JSON(http.StatusOK, gin.H{
-		"message": user,
+		"message": "User login successfully",
+	})
+}
+
+func Test(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"message": "User login successfully",
 	})
 }
 
 //----------User signup--------------------------------------->
 
 func UserSignUP(c *gin.Context) {
-
+	otp := VerifyOTP()
 	var Data checkUserData
+
 	if c.Bind(&Data) != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Bad request",
@@ -53,7 +62,6 @@ func UserSignUP(c *gin.Context) {
 	}
 
 	db := config.DBconnect()
-
 	result := db.First(&temp_user, "email LIKE ?", Data.Email)
 	if result.Error != nil {
 		user := models.User{
@@ -70,8 +78,10 @@ func UserSignUP(c *gin.Context) {
 				"message": "Bad request",
 			})
 		} else {
-			c.JSON(http.StatusOK, gin.H{
-				"message": "Signup successful",
+			db.Model(&user).Where("email LIKE ?", user.Email).Update("otp", otp)
+
+			c.JSON(202, gin.H{
+				"message": "Go to /signup/otpvalidate", //202 success but there still one more process
 			})
 		}
 
@@ -81,6 +91,42 @@ func UserSignUP(c *gin.Context) {
 		})
 		return
 	}
+}
+
+//-------Otp validtioin------------->
+
+func OtpValidation(c *gin.Context) {
+
+	fmt.Println("Reached here.......")
+	type User_otp struct {
+		Otp   string
+		Email string
+	}
+	var user_otp User_otp
+	var userData models.User
+	if c.Bind(&user_otp) != nil {
+		c.JSON(400, gin.H{
+			"Error": "Could not bind the JSON Data",
+		})
+		return
+	}
+	db := config.DBconnect()
+	result := db.First(&userData, "otp LIKE ? AND email LIKE ?", user_otp.Otp, user_otp.Email)
+	if result.Error != nil {
+		c.JSON(404, gin.H{
+			"Error": result.Error.Error(),
+		})
+		db.Last(&userData).Delete(&userData)
+		c.JSON(422, gin.H{
+			"Error":   "Wrong OTP Register Once agian",
+			"Message": "Goto /signup/otpvalidate",
+		})
+		return
+	}
+	c.JSON(200, gin.H{
+		"Message": "New User Successfully Registered",
+	})
+
 }
 
 //------------User login------------------------>

@@ -8,8 +8,7 @@ import (
 
 	"time"
 
-	"github.com/athunlal/config"
-	"github.com/athunlal/models"
+	
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 )
@@ -22,8 +21,8 @@ func UserAuth(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"User": "logout",
 		})
-
 		c.AbortWithStatus(http.StatusUnauthorized)
+		return
 	}
 
 	// Decode/validate it
@@ -36,6 +35,12 @@ func UserAuth(c *gin.Context) {
 		return []byte(os.Getenv("SECERET")), nil
 	})
 
+	if err != nil {
+		c.JSON(500, gin.H{
+			"erroe": "Bad request",
+		})
+	}
+
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		// Check the exp
 
@@ -43,22 +48,8 @@ func UserAuth(c *gin.Context) {
 			c.AbortWithStatus(http.StatusUnauthorized)
 		}
 
-		// Find the user with token  sub
-		var user models.User
-		Db := config.DBconnect()
+		c.Set("userid", claims["sub"])
 
-		result := Db.First(&user, "email LIKE ?", claims["sub"])
-		if result.Error != nil {
-			fmt.Println(result.Error)
-		}
-		if user.ID == 0 {
-			c.AbortWithStatus(http.StatusUnauthorized)
-		}
-
-		// Atach to req
-		c.Set("user", user)
-
-		// continuew
 		c.Next()
 
 	} else {
@@ -69,11 +60,11 @@ func UserAuth(c *gin.Context) {
 
 func AdminAuth(c *gin.Context) {
 	//Get the cookie off req
-	tokenString, err := c.Cookie("Autherization")
+	tokenString, err := c.Cookie("AdminAutherization")
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"Admin": "logout",
+			"message": "Invaid access",
 		})
 
 		c.AbortWithStatus(http.StatusUnauthorized)
@@ -88,6 +79,11 @@ func AdminAuth(c *gin.Context) {
 
 		return []byte(os.Getenv("SECERET")), nil
 	})
+	if err != nil {
+		c.JSON(500, gin.H{
+			"error": "Admin logout",
+		})
+	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		// Check the exp
@@ -96,21 +92,10 @@ func AdminAuth(c *gin.Context) {
 			c.AbortWithStatus(http.StatusUnauthorized)
 		}
 
-		// Find the user with token  sub
-		var admin models.Admin
-		Db := config.DBconnect()
-
-		result := Db.First(&admin, "email LIKE ?", claims["sub"])
-		if result.Error != nil {
-			fmt.Println(result.Error)
-		}
-		if admin.ID == 0 {
-			c.AbortWithStatus(http.StatusUnauthorized)
-		}
-
-		// Atach to req
-		c.Set("admin", admin)
 		
+		// Atach to req
+		c.Set("adminid",claims["sub"])
+
 		// continuew
 		c.Next()
 

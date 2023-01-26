@@ -1,12 +1,13 @@
 package controls
 
 import (
-	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 
 	"time"
 
+	"github.com/athunlal/auth"
 	"github.com/athunlal/config"
 	"github.com/athunlal/models"
 	"github.com/gin-gonic/gin"
@@ -23,8 +24,8 @@ type checkAdminData struct {
 }
 
 func ValidateAdmin(c *gin.Context) {
-	fmt.Println("reached here...........")
 	c.Get("admin")
+
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Admin login successfully",
 	})
@@ -95,6 +96,13 @@ func AdminSignup(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
 
+func AdminSignout(c *gin.Context) {
+	c.SetCookie("AdminAutherization", "", -1, "", "", false, false)
+	c.JSON(200, gin.H{
+		"Message": "Admin Successfully Signed Out",
+	})
+}
+
 func AdminLogin(c *gin.Context) {
 
 	type AdminData struct {
@@ -128,20 +136,26 @@ func AdminLogin(c *gin.Context) {
 	}
 
 	//----------------Generating a JWT-tokent-------------------//
+	str := strconv.Itoa(int(checkAdmin.ID))
+	tokenString := auth.TokenGeneration(str)
+	c.SetSameSite(http.SameSiteLaxMode)
+	c.SetCookie("AdminAutherization", tokenString, 3600*24*30, "", "", false, true)
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub": admin.Email,
-		"exp": time.Now().Add(time.Hour * 24 * 30).Unix(),
-	})
-	tokenString, err := token.SignedString([]byte(os.Getenv("SECERET")))
-	if err != nil {
+	c.JSON(http.StatusOK, gin.H{})
+}
+
+func ViewAllUser(c *gin.Context) {
+	var user []models.User
+	db := config.DBconnect()
+	result := db.Find(&user)
+	if result.Error != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Failed to  create token",
+			"error": "Bad requst",
 		})
 		return
 	}
-	c.SetSameSite(http.SameSiteLaxMode)
-	c.SetCookie("Autherization", tokenString, 3600*24*30, "", "", false, true)
+	c.JSON(http.StatusOK, gin.H{
+		"User": user,
+	})
 
-	c.JSON(http.StatusOK, gin.H{})
 }

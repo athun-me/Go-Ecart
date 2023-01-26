@@ -2,14 +2,13 @@ package controls
 
 import (
 	"net/http"
-	"os"
-	"time"
+	"strconv"
 
+	"github.com/athunlal/auth"
 	"github.com/athunlal/config"
 
 	"github.com/athunlal/models"
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v4"
 
 	// "github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
@@ -31,10 +30,10 @@ func Validate(c *gin.Context) {
 		"message": "User login successfully",
 	})
 }
+
 //----------User signup--------------------------------------->
 
 func UserSignUP(c *gin.Context) {
-	otp := VerifyOTP()
 	var Data checkUserData
 
 	if c.Bind(&Data) != nil {
@@ -52,6 +51,8 @@ func UserSignUP(c *gin.Context) {
 		})
 		return
 	}
+
+	otp := VerifyOTP(Data.Email)
 
 	db := config.DBconnect()
 	result := db.First(&temp_user, "email LIKE ?", Data.Email)
@@ -119,6 +120,15 @@ func OtpValidation(c *gin.Context) {
 
 }
 
+//-------------User logout---------------------->
+
+func UserSignout(c *gin.Context) {
+	c.SetCookie("Autherization", "", -1, "", "", false, false)
+	c.JSON(200, gin.H{
+		"Message": "User Successfully  Log Out",
+	})
+}
+
 //------------User login------------------------>
 
 func UesrLogin(c *gin.Context) {
@@ -154,20 +164,13 @@ func UesrLogin(c *gin.Context) {
 
 	//----------------Generating a JWT-tokent-------------------//
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub": user.Email,
-		"exp": time.Now().Add(time.Hour * 24 * 30).Unix(),
-	})
-	tokenString, err := token.SignedString([]byte(os.Getenv("SECERET")))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Failed to  create token",
-		})
-		return
-	}
+	str := strconv.Itoa(int(checkUser.ID))
+	tokenString := auth.TokenGeneration(str)
 	c.SetSameSite(http.SameSiteLaxMode)
 	c.SetCookie("Autherization", tokenString, 3600*24*30, "", "", false, true)
 
-	c.JSON(http.StatusOK, gin.H{})
+	c.JSON(http.StatusOK, gin.H{
+		"message": "User login successfully",
+	})
 
 }

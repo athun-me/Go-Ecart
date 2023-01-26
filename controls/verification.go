@@ -6,25 +6,21 @@ import (
 
 	"net/smtp"
 
-	// "strings"
-
 	"math/big"
 	"strconv"
-	// "github.com/gin-gonic/gin"
-	// "github.com/gin-gonic/gin"
 )
 
-func VerifyOTP() string {
+func VerifyOTP(email string) string {
 	Otp, err := getRandNum()
 	if err != nil {
 		panic(err)
 	}
 
-	sendMail(Otp)
+	sendMail(email, Otp)
 	return Otp
 }
 
-func sendMail(otp string) {
+func sendMail(email string, otp string) {
 
 	// Sender data.
 	from := "golangathunbrototype@gmail.com"
@@ -32,7 +28,7 @@ func sendMail(otp string) {
 
 	// Receiver email address.
 	to := []string{
-		"athunlalp@gmail.com",
+		email,
 	}
 
 	// smtp server configuration.

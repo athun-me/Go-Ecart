@@ -13,6 +13,7 @@ func UserRouts(c *gin.Engine) {
 		User.POST("/signup", controls.UserSignUP)
 		User.POST("/signup/otpvalidate", controls.OtpValidation)
 
+		User.GET("/logout", controls.UserSignout)
 		User.GET("/validate", midilware.UserAuth, controls.Validate)
 
 	}

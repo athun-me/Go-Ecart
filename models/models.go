@@ -7,8 +7,9 @@ type User struct {
 	Email       string `json:"email"   gorm:"not null;unique"  validate:"email,required"`
 	Password    string `json:"password" gorm:"not null"  validate:"required"`
 	PhoneNumber int    `json:"phone"   gorm:"not null;unique" validate:"required"`
-	IsAdmin     bool   `json:"false"`
-	Otp         string
+	IsAdmin     bool   `JSON:"isadmin" gorm:"default:false"`
+	Otp         string `JSON:"otp"`
+	Isblocked   bool   `JSON:"isblocked" gorm:"default:false"`
 }
 
 type Admin struct {
@@ -18,5 +19,5 @@ type Admin struct {
 	Email       string `json:"email"   gorm:"not null;unique"  validate:"email,required"`
 	Password    string `json:"password" gorm:"not null"  validate:"required"`
 	PhoneNumber int    `json:"phone"   gorm:"not null;unique" validate:"required"`
-	IsAdmin     bool   `json:"true"`
+	IsAdmin     bool   `JSON:"isadmin" gorm:"default:true"`
 }

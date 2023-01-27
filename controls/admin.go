@@ -3,6 +3,7 @@ package controls
 import (
 	"net/http"
 	"os"
+
 	"strconv"
 
 	"time"
@@ -141,7 +142,9 @@ func AdminLogin(c *gin.Context) {
 	c.SetSameSite(http.SameSiteLaxMode)
 	c.SetCookie("AdminAutherization", tokenString, 3600*24*30, "", "", false, true)
 
-	c.JSON(http.StatusOK, gin.H{})
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Admin login successfully",
+	})
 }
 
 func ViewAllUser(c *gin.Context) {
@@ -156,6 +159,67 @@ func ViewAllUser(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"User": user,
+	})
+}
+
+func AdminSearchUser(c *gin.Context) {
+
+	//Get id from URL
+	id := c.Param("id")
+
+	var user []models.User
+	db := config.DBconnect()
+	result := db.First(&user, id)
+
+	if result.Error != nil {
+		c.JSON(404, gin.H{
+			"Error": result.Error.Error(),
+		})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"user": user,
+	})
+
+}
+
+func AdminBlockUser(c *gin.Context) {
+	id := c.Param("id")
+
+	var user []models.User
+	db := config.DBconnect()
+
+	result := db.Model(user).Where("id = ?", id).Update("isblocked", true)
+	if result.Error != nil {
+		c.JSON(404, gin.H{
+			"Error": result.Error.Error(),
+		})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"user": user,
+	})
+
+}
+
+func AdminUnlockUser(c *gin.Context) {
+	id := c.Param("id")
+
+	var user []models.User
+	db := config.DBconnect()
+
+	result := db.Model(user).Where("id = ?", id).Update("isblocked", false)
+	if result.Error != nil {
+		c.JSON(404, gin.H{
+			"Error": result.Error.Error(),
+		})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"user": "Unblocked",
 	})
 
 }

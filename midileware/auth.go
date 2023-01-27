@@ -101,6 +101,5 @@ func AdminAuth(c *gin.Context) {
 
 	} else {
 		c.AbortWithStatus(http.StatusUnauthorized)
-
 	}
 }

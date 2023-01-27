@@ -1,6 +1,7 @@
 package controls
 
 import (
+	
 	"net/http"
 	"strconv"
 
@@ -147,6 +148,15 @@ func UesrLogin(c *gin.Context) {
 	var checkUser models.User
 	db := config.DBconnect()
 	result := db.First(&checkUser, "email LIKE ?", user.Email)
+
+
+	if checkUser.Isblocked == true{
+		c.JSON(http.StatusBadRequest, gin.H{
+			"user": "User blocked by admin",
+		})
+		return
+	}
+
 	if result.Error != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"user": "User NOT found",

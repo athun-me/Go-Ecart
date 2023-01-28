@@ -16,7 +16,10 @@ func AdminRouts(c *gin.Engine) {
 		admin.GET("/logout", midilware.AdminAuth, controls.AdminSignout)
 		admin.GET("/searchuser/:id", midilware.AdminAuth, controls.AdminSearchUser)
 		admin.GET("/adminvalidate", midilware.AdminAuth, controls.ValidateAdmin)
+		admin.GET("/getuserprofile/:id", midilware.AdminAuth, controls.GetUserProfile)
+		admin.GET("/getadminprofile/:id", midilware.AdminAuth, controls.AdminProfile)
 
+		admin.PUT("/edituserprofile/:id", midilware.AdminAuth, controls.EditUserProfile)
 		admin.PUT("/blockusers/:id", midilware.AdminAuth, controls.AdminBlockUser)
 		admin.PUT("/unblockeusers/:id", midilware.AdminAuth, controls.AdminUnlockUser)
 

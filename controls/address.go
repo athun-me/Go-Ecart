@@ -81,7 +81,8 @@ func EditUserAddress(c *gin.Context) {
 	userAddress.Userid = uint(str)
 	db := config.DBconnect()
 	fmt.Println(id)
-	result := db.Model(userAddress).Updates(models.Address{
+	result := db.Model(userAddress).Where("userid = ?", id).Updates(models.Address{
+
 		Name:     userAddress.Name,
 		Phoneno:  userAddress.Phoneno,
 		Houseno:  userAddress.Houseno,
@@ -101,8 +102,8 @@ func EditUserAddress(c *gin.Context) {
 		return
 	}
 	c.JSON(200, gin.H{
-		"Message": "Successfully Updated the Address",
-		"Updated data" : userAddress,
+		"Message":      "Successfully Updated the Address",
+		"Updated data": userAddress,
 	})
 
 }

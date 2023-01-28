@@ -8,18 +8,17 @@ import (
 
 	"time"
 
-	
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 )
 
 func UserAuth(c *gin.Context) {
 	//Get the cookie off req
-	tokenString, err := c.Cookie("Autherization")
+	tokenString, err := c.Cookie("UserAutherization")
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"User": "logout",
+		c.JSON(401, gin.H{
+			"Massage": "Invalid access, User logout",
 		})
 		c.AbortWithStatus(http.StatusUnauthorized)
 		return
@@ -37,12 +36,12 @@ func UserAuth(c *gin.Context) {
 
 	if err != nil {
 		c.JSON(500, gin.H{
-			"erroe": "Bad request",
+			"Status": "False",
+			"Error": "Error occured while token genaration",
 		})
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		// Check the exp
 
 		if float64(time.Now().Unix()) > claims["exp"].(float64) {
 			c.AbortWithStatus(http.StatusUnauthorized)
@@ -63,8 +62,8 @@ func AdminAuth(c *gin.Context) {
 	tokenString, err := c.Cookie("AdminAutherization")
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "Invaid access",
+		c.JSON(401, gin.H{
+			"Massage": "Invalid access",
 		})
 
 		c.AbortWithStatus(http.StatusUnauthorized)
@@ -80,8 +79,8 @@ func AdminAuth(c *gin.Context) {
 		return []byte(os.Getenv("SECERET")), nil
 	})
 	if err != nil {
-		c.JSON(500, gin.H{
-			"error": "Admin logout",
+		c.JSON(401, gin.H{
+			"Massage": "Admin logout",
 		})
 	}
 
@@ -92,9 +91,8 @@ func AdminAuth(c *gin.Context) {
 			c.AbortWithStatus(http.StatusUnauthorized)
 		}
 
-		
 		// Atach to req
-		c.Set("adminid",claims["sub"])
+		c.Set("adminid", claims["sub"])
 
 		// continuew
 		c.Next()

@@ -8,6 +8,10 @@ import (
 
 	"math/big"
 	"strconv"
+
+	"github.com/athunlal/config"
+	"github.com/athunlal/models"
+	"github.com/gin-gonic/gin"
 )
 
 func VerifyOTP(email string) string {
@@ -55,4 +59,38 @@ func getRandNum() (string, error) {
 		return "", e
 	}
 	return strconv.FormatInt(nBig.Int64()+1000, 10), nil
+}
+
+//-------Otp validtioin------------->
+
+func OtpValidation(c *gin.Context) {
+	type User_otp struct {
+		Otp   string
+		Email string
+	}
+	var user_otp User_otp
+	var userData models.User
+	if c.Bind(&user_otp) != nil {
+		c.JSON(400, gin.H{
+			"Error": "Could not bind the JSON Data",
+		})
+		return
+	}
+	db := config.DBconnect()
+	result := db.First(&userData, "otp LIKE ? AND email LIKE ?", user_otp.Otp, user_otp.Email)
+	if result.Error != nil {
+		c.JSON(404, gin.H{
+			"Error": result.Error.Error(),
+		})
+		db.Last(&userData).Delete(&userData)
+		c.JSON(422, gin.H{
+			"Error":   "Wrong OTP Register Once agian",
+			"Message": "Goto /signup/otpvalidate",
+		})
+		return
+	}
+	c.JSON(200, gin.H{
+		"Message": "New User Successfully Registered",
+	})
+
 }

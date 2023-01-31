@@ -1,7 +1,6 @@
 package controls
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -80,7 +79,6 @@ func EditUserAddress(c *gin.Context) {
 	}
 	userAddress.Userid = uint(str)
 	db := config.DBconnect()
-	fmt.Println(id)
 	result := db.Model(userAddress).Where("userid = ?", id).Updates(models.Address{
 
 		Name:     userAddress.Name,
@@ -105,5 +103,4 @@ func EditUserAddress(c *gin.Context) {
 		"Message":      "Successfully Updated the Address",
 		"Updated data": userAddress,
 	})
-
 }

@@ -31,7 +31,7 @@ func GetUserProfile(c *gin.Context) {
 	})
 
 }
-func EditUserProfile(c *gin.Context) {
+func EditUserProfileByadmin(c *gin.Context) {
 	uid := c.Param("id")
 	id, err := strconv.Atoi(uid)
 	if err != nil {

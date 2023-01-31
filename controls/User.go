@@ -48,6 +48,7 @@ func UserSignUP(c *gin.Context) {
 
 	db := config.DBconnect()
 	result := db.First(&temp_user, "email LIKE ?", Data.Email)
+
 	if result.Error != nil {
 		user := models.User{
 
@@ -123,7 +124,7 @@ func UesrLogin(c *gin.Context) {
 		return
 	}
 
-	//----------------Generating a JWT-tokent-------------------//
+	//>>>>>>>>>>>>>>>>> Generating a JWT-tokent <<<<<<<<<<<<<<<//
 
 	str := strconv.Itoa(int(checkUser.ID))
 	tokenString := auth.TokenGeneration(str)
@@ -136,7 +137,7 @@ func UesrLogin(c *gin.Context) {
 
 }
 
-//-------------User logout---------------------->
+//>>>>>>>>>>>>>>> User logout <<<<<<<<<<<<<<<<<<<<<<<<
 
 func UserSignout(c *gin.Context) {
 	c.SetCookie("UserAutherization", "", -1, "", "", false, false)
@@ -145,10 +146,168 @@ func UserSignout(c *gin.Context) {
 	})
 }
 
-//-------Validate----------------------->
+//>>>>>>>>>>>>>>> Validate <<<<<<<<<<<<<<<<<<<<<<<<<<<<
 func Validate(c *gin.Context) {
 	c.Get("user")
 	c.JSON(200, gin.H{
 		"message": "User login successfully",
+	})
+}
+
+//>>>>>>>>>>>> Change password by user <<<<<<<<<<<<<<<<
+
+func UserChangePassword(c *gin.Context) {
+
+	var userEnterData checkUserData
+	if c.Bind(&userEnterData) != nil {
+		c.JSON(400, gin.H{
+			"error": "Data binding error",
+		})
+		return
+	}
+
+	id, err := strconv.Atoi(c.GetString("userid"))
+
+	if err != nil {
+		c.JSON(400, gin.H{
+			"Error": "Error in string conversion",
+		})
+		return
+	}
+
+	var userData models.User
+	db := config.DBconnect()
+	result := db.First(&userData, "id = ?", id)
+	if result.Error != nil {
+		c.JSON(409, gin.H{
+			"Error": "User not exist",
+		})
+		return
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(userData.Password), []byte(userEnterData.Password))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status": "false",
+			"error":  "Password is incorrect",
+		})
+		return
+	} else {
+		c.JSON(200, gin.H{
+			"message": "Go to /updatepassword",
+		})
+	}
+}
+
+//>>>>>>>>>>>>> updating new user <<<<<<<<<<<<<<<<<<<<<<
+func Updatepassword(c *gin.Context) {
+
+	var userEnterData checkUserData
+	var userData models.User
+	if c.Bind(&userEnterData) != nil {
+		c.JSON(400, gin.H{
+			"error": "Data binding error",
+		})
+		return
+	}
+	hash, err := bcrypt.GenerateFromPassword([]byte(userEnterData.Password), 10)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"Status": "False",
+			"Error":  "Hashing password error",
+		})
+		return
+	}
+
+	id, err := strconv.Atoi(c.GetString("userid"))
+	if err != nil {
+		c.JSON(400, gin.H{
+			"Error": "Error in string conversion",
+		})
+		return
+	}
+	db := config.DBconnect()
+	result := db.First(&userData, "id = ?", id)
+	if result.Error != nil {
+		c.JSON(409, gin.H{
+			"Error": "User not exist",
+		})
+		return
+	}
+
+	db.Model(&userData).Where("id = ?", id).Update("password", hash)
+	c.JSON(202, gin.H{
+		"message": "Successfully updated password",
+	})
+}
+
+//>>>>>>>>>>>>Veiw user profile <<<<<<<<<<<<<<<<<<<<<<<<<<
+func ShowUserDetails(c *gin.Context) {
+	var userData models.User
+	id, err := strconv.Atoi(c.GetString("userid"))
+	if err != nil {
+		c.JSON(400, gin.H{
+			"Error": "Error in string conversion",
+		})
+		return
+	}
+	db := config.DBconnect()
+	result := db.First(&userData, "id = ?", id)
+	if result.Error != nil {
+		c.JSON(409, gin.H{
+			"Error": "User not exist",
+		})
+		return
+	}
+	c.JSON(202, gin.H{
+
+		"User profile": userData,
+	})
+}
+
+//>>>>>>>>>>> Edit user profile <<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+func EditUserProfilebyUser(c *gin.Context) {
+	var userEnterData checkUserData
+	if c.Bind(&userEnterData) != nil {
+		c.JSON(400, gin.H{
+			"error": "Data binding error",
+		})
+		return
+	}
+
+	var userData models.User
+	id, err := strconv.Atoi(c.GetString("userid"))
+	if err != nil {
+		c.JSON(400, gin.H{
+			"Error": "Error in string conversion",
+		})
+		return
+	}
+	db := config.DBconnect()
+	result := db.First(&userData, "id = ?", id)
+	if result.Error != nil {
+		c.JSON(409, gin.H{
+			"Error": "User not exist",
+		})
+		return
+	}
+
+	result = db.Model(&userData).Updates(models.User{
+		Firstname:   userEnterData.Firstname,
+		Lastname:    userEnterData.Lastname,
+		PhoneNumber: userEnterData.PhoneNumber,
+	})
+
+	if result.Error != nil {
+		c.JSON(404, gin.H{
+			"Error": result.Error.Error(),
+		})
+		return
+	}
+	
+	c.JSON(200, gin.H{
+		"Message":      "Successfully Updated the profile",
+		"Updated data": userData,
 	})
 }

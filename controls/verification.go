@@ -184,5 +184,4 @@ func ChangePassword(c *gin.Context) {
 			"message": "Successfully updated password",
 		})
 	}
-
 }

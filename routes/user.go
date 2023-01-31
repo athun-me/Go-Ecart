@@ -15,7 +15,10 @@ func UserRouts(c *gin.Engine) {
 		User.POST("/addaddress/:id", midilware.UserAuth, controls.Addaddress)
 
 		User.PUT("/editaddress/:id", midilware.UserAuth, controls.EditUserAddress)
-		
+		User.PUT("/forgotpassword", midilware.UserAuth, controls.ForgotPassword)
+		User.PUT("/forgotpasswordotpvalidation", midilware.UserAuth, controls.ForgotPasswordOtpValidation)
+		User.PUT("/changepassword", midilware.UserAuth, controls.ChangePassword)
+
 		User.GET("/searchaddress/:id", midilware.UserAuth, controls.ShowAddress)
 		User.GET("/logout", midilware.UserAuth, controls.UserSignout)
 		User.GET("/validate", midilware.UserAuth, controls.Validate)

@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 type User struct {
 	ID          uint   `json:"id" gorm:"primaryKey;unique"  `
 	Firstname   string `json:"first_name"  gorm:"not null" validate:"required,min=2,max=50"`
@@ -10,6 +12,8 @@ type User struct {
 	IsAdmin     bool   `JSON:"isadmin" gorm:"default:false"`
 	Otp         string `JSON:"otp"`
 	Isblocked   bool   `JSON:"isblocked" gorm:"default:false"`
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 type Address struct {

@@ -11,6 +11,8 @@ func AdminRouts(c *gin.Engine) {
 	{
 		admin.POST("/login", controls.AdminLogin)
 		admin.POST("/signup", controls.AdminSignup)
+		admin.POST("/addproduct", midilware.AdminAuth, controls.AddProduct)
+		admin.POST("/addbrand", midilware.AdminAuth, controls.AddBrands)
 
 		admin.GET("/viewuser", midilware.AdminAuth, controls.ViewAllUser)
 		admin.GET("/logout", midilware.AdminAuth, controls.AdminSignout)

@@ -10,10 +10,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+//>>>>>>>>>>> Add addresses <<<<<<<<<<<<<<<<<<<<
 func Addaddress(c *gin.Context) {
 	id := c.Param("id")
 	uid, err := strconv.Atoi(id)
-
 	if err != nil {
 		c.JSON(501, gin.H{
 			"Success": "false",
@@ -43,23 +43,26 @@ func Addaddress(c *gin.Context) {
 	})
 }
 
+//>>>>>>>>>>>>> show address <<<<<<<<<<<<<<<<<<<<<
 func ShowAddress(c *gin.Context) {
-	id := c.Param("id")
-
+	id, _ := strconv.Atoi(c.Param("id"))
 	var userAddres models.Address
+
 	db := config.DBconnect()
-	result := db.First(&userAddres, id)
+	result := db.Raw("SELECT * from addresses WHERE userid = ?", id).Scan(&userAddres)
 	if result.Error != nil {
 		c.JSON(404, gin.H{
 			"Error": result.Error.Error(),
 		})
 		return
 	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"User Address": userAddres,
 	})
 }
 
+//>>>>>>>>>>>>>> Edit Address <<<<<<<<<<<<<<<<<<<<<
 func EditUserAddress(c *gin.Context) {
 	id := c.Param("id")
 
@@ -79,8 +82,8 @@ func EditUserAddress(c *gin.Context) {
 	}
 	userAddress.Userid = uint(str)
 	db := config.DBconnect()
-	result := db.Model(userAddress).Where("userid = ?", id).Updates(models.Address{
 
+	result := db.Model(userAddress).Where("userid = ?", id).Updates(models.Address{
 		Name:     userAddress.Name,
 		Phoneno:  userAddress.Phoneno,
 		Houseno:  userAddress.Houseno,

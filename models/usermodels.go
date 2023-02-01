@@ -18,7 +18,9 @@ type User struct {
 
 type Address struct {
 	Addressid uint   `JSON:"addressid" gorm:"primarykey;unique"`
-	Userid    uint   `JSON:"userid" gorm:"foreignKey:UserRefer"`
+	User      User   `gorm:"ForeignKey:Userid"`
+	Userid       uint   `JSON:"uid"`
+	
 	Name      string `JSON:"name" gorm:"not null"`
 	Phoneno   string `JSON:"phoneno" gorm:"not null"`
 	Houseno   string `JSON:"houseno" gorm:"not null"`

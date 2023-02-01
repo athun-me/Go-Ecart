@@ -13,6 +13,7 @@ func UserRouts(c *gin.Engine) {
 		User.POST("/signup", controls.UserSignUP)
 		User.POST("/signup/otpvalidate", controls.OtpValidation)
 		User.POST("/addaddress/:id", midilware.UserAuth, controls.Addaddress)
+		User.POST("/addtocart", midilware.UserAuth, controls.AddToCart)
 
 		User.PUT("/editaddress/:id", midilware.UserAuth, controls.EditUserAddress)
 		User.PUT("/forgotpassword", midilware.UserAuth, controls.ForgotPassword)
@@ -22,6 +23,7 @@ func UserRouts(c *gin.Engine) {
 		User.PUT("/updatepassword", midilware.UserAuth, controls.Updatepassword)
 		User.PUT("/editprofile", midilware.UserAuth, controls.EditUserProfilebyUser)
 
+		User.GET("/viewproducts", midilware.UserAuth, controls.ViewProducts)
 		User.GET("/viewprofile", midilware.UserAuth, controls.ShowUserDetails)
 		User.GET("/searchaddress/:id", midilware.UserAuth, controls.ShowAddress)
 		User.GET("/logout", midilware.UserAuth, controls.UserSignout)

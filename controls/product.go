@@ -119,3 +119,62 @@ func AddToCart(c *gin.Context) {
 	})
 
 }
+
+//>>>>>>>>>>>>>>> View Products <<<<<<<<<<<<<<<<<<<<<<<
+
+func ViewCart(c *gin.Context) {
+	id, err := strconv.Atoi(c.GetString("userid"))
+	if err != nil {
+		c.JSON(400, gin.H{
+			"Error": "Error in string conversion",
+		})
+	}
+	type cartdata struct {
+		Productname string
+		Quantity    uint
+		Totalprice  uint
+		Image       string
+		Price       string
+	}
+	var datas []cartdata
+	db := config.DBconnect()
+	result := db.Table("carts").Select("products.productname, carts.quantity, carts.price, carts.totalprice").Joins("INNER JOIN products ON products.productid=carts.product_id").Where("cartid = ?", id).Scan(&datas)
+	if result.Error != nil {
+		c.JSON(404, gin.H{
+			"Error": result.Error.Error(),
+		})
+		return
+	}
+	c.JSON(200, gin.H{
+		"Cart Items": datas,
+	})
+}
+
+//>>>>>>>>>>>>>Remove cart <<<<<<<<<<<<<<<<<<<<<
+func RemoveCart(c *gin.Context) {
+
+	var cartData models.Cart
+	if c.Bind(&cartData) != nil {
+		c.JSON(400, gin.H{
+			"Bad Request": "Could not bind the JSON data",
+		})
+		return
+	}
+	db := config.DBconnect()
+	result := db.Exec("delete from carts where id= ?", cartData.ID)
+	if cartData.ID == 0 {
+		c.JSON(400, gin.H{
+			"Bad Request": "Cart not exist",
+		})
+		return
+	}
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"Error": result.Error.Error(),
+		})
+		return
+	}
+	c.JSON(200, gin.H{
+		"Cart Items": "Delete successfully",
+	})
+}

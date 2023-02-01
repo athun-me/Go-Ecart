@@ -24,10 +24,12 @@ func UserRouts(c *gin.Engine) {
 		User.PUT("/editprofile", midilware.UserAuth, controls.EditUserProfilebyUser)
 
 		User.GET("/viewproducts", midilware.UserAuth, controls.ViewProducts)
+		User.GET("/viewcart", midilware.UserAuth, controls.ViewCart)
 		User.GET("/viewprofile", midilware.UserAuth, controls.ShowUserDetails)
 		User.GET("/searchaddress/:id", midilware.UserAuth, controls.ShowAddress)
 		User.GET("/logout", midilware.UserAuth, controls.UserSignout)
 		User.GET("/validate", midilware.UserAuth, controls.Validate)
 
+		User.DELETE("/removercart", midilware.UserAuth, controls.RemoveCart)
 	}
 }

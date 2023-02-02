@@ -2,6 +2,7 @@ package controls
 
 import (
 	"net/http"
+
 	"strconv"
 
 	"github.com/athunlal/config"
@@ -12,32 +13,29 @@ import (
 
 //>>>>>>>>>>> Add addresses <<<<<<<<<<<<<<<<<<<<
 func Addaddress(c *gin.Context) {
-	id := c.Param("id")
-	uid, err := strconv.Atoi(id)
+	id, err := strconv.Atoi(c.GetString("userid"))
 	if err != nil {
-		c.JSON(501, gin.H{
-			"Success": "false",
-			"Error":   "Error in string conversion",
+		c.JSON(400, gin.H{
+			"Error": "Error in string conversion",
 		})
 	}
-	var addressData models.Address
-
-	if c.Bind(&addressData) != nil {
-		c.JSON(501, gin.H{
-			"Success": "false",
-			"Error":   "Error in Binding the JSON",
+	var userEnterData models.Address
+	if c.Bind(&userEnterData) != nil {
+		c.JSON(400, gin.H{
+			"Error": "Error in Binding the JSON",
 		})
 	}
-
-	addressData.Userid = uint(uid)
 	db := config.DBconnect()
-	result := db.Create(&addressData)
+	db.Model(&models.Address{}).Where("userid = ?", id).Update("defaultadd", false)
+	userEnterData.Userid = uint(id)
+	result := db.Create(&userEnterData)
 	if result.Error != nil {
 		c.JSON(500, gin.H{
 			"Error": result.Error.Error(),
 		})
 		return
 	}
+	db.Model(&userEnterData).Where("addressid = ?", userEnterData.Addressid).Update("defaultadd", true)
 	c.JSON(200, gin.H{
 		"Message": "Address added succesfully",
 	})
@@ -50,15 +48,35 @@ func ShowAddress(c *gin.Context) {
 
 	db := config.DBconnect()
 	result := db.Raw("SELECT * from addresses WHERE userid = ?", id).Scan(&userAddres)
+
+	// if userAddres.User.ID == 0 {
+	// 	c.JSON(404, gin.H{
+	// 		"Message": "There is no address in this user id",
+	// 	})
+	// 	return
+	// }
 	if result.Error != nil {
 		c.JSON(404, gin.H{
 			"Error": result.Error.Error(),
 		})
 		return
 	}
-
 	c.JSON(http.StatusOK, gin.H{
-		"User Address": userAddres,
+		"Address": gin.H{
+			"Addressid":  userAddres.Addressid,
+			"Userid":     userAddres.Userid,
+			"Name":       userAddres.Name,
+			"Phoneno":    userAddres.Phoneno,
+			"Houseno":    userAddres.Houseno,
+			"Area":       userAddres.Area,
+			"Landmark":   userAddres.Landmark,
+			"City":       userAddres.City,
+			"Pincode":    userAddres.Pincode,
+			"District":   userAddres.District,
+			"State":      userAddres.State,
+			"Country":    userAddres.Country,
+			"Defaultadd": userAddres.Defaultadd,
+		},
 	})
 }
 

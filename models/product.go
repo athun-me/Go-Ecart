@@ -17,13 +17,6 @@ type Brand struct {
 	Brandname string `JSON:"brandname" gorm:"not null"`
 }
 
-type Image struct {
-	ID      uint    `json:"id" gorm:"primaryKey"`
-	Product Product `gorm:"ForeignKey:Pid"`
-	Pid     uint    `json:"pid"`
-	Image   string  `JSON:"Image" gorm:"not null"`
-}
-
 type Cart struct {
 	gorm.Model
 	Product    Product `gorm:"ForeignKey:Product_id"`
@@ -31,6 +24,13 @@ type Cart struct {
 	Quantity   uint
 	Price      uint
 	Totalprice uint
-	Cartid     uint
-	User       User `gorm:"ForeignKey:Cartid"`
+	Userid     uint
+	User       User `gorm:"ForeignKey:Userid"`
+}
+
+type Image struct {
+	ID         uint    `json:"id" gorm:"primaryKey"`
+	Product    Product `gorm:"ForeignKey:Product_id"`
+	Product_id uint    `json:"Product_id"`
+	Image      string  `JSON:"Image" gorm:"not null"`
 }

@@ -17,18 +17,19 @@ type User struct {
 }
 
 type Address struct {
-	Addressid uint   `JSON:"addressid" gorm:"primarykey;unique"`
-	User      User   `gorm:"ForeignKey:Userid"`
-	Userid       uint   `JSON:"uid"`
-	
-	Name      string `JSON:"name" gorm:"not null"`
-	Phoneno   string `JSON:"phoneno" gorm:"not null"`
-	Houseno   string `JSON:"houseno" gorm:"not null"`
-	Area      string `JSON:"area" gorm:"not null"`
-	Landmark  string `JSON:"landmark" gorm:"not null"`
-	City      string `JSON:"city" gorm:"not null"`
-	Pincode   string `JSON:"pincode" gorm:"not null"`
-	District  string `JSON:"district" gorm:"not null"`
-	State     string `JSON:"state" gorm:"not null"`
-	Country   string `JSON:"country" gorm:"not null"`
+	Addressid uint `JSON:"addressid" gorm:"primarykey;unique"`
+	User      User `gorm:"ForeignKey:Userid"`
+	Userid    uint `JSON:"uid"`
+
+	Name       string `JSON:"name" gorm:"not null"`
+	Phoneno    string `JSON:"phoneno" gorm:"not null"`
+	Houseno    string `JSON:"houseno" gorm:"not null"`
+	Area       string `JSON:"area" gorm:"not null"`
+	Landmark   string `JSON:"landmark" gorm:"not null"`
+	City       string `JSON:"city" gorm:"not null"`
+	Pincode    string `JSON:"pincode" gorm:"not null"`
+	District   string `JSON:"district" gorm:"not null"`
+	State      string `JSON:"state" gorm:"not null"`
+	Country    string `JSON:"country" gorm:"not null"`
+	Defaultadd bool   `JSON:"defaultadd" gorm:"default:false"`
 }

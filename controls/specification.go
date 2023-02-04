@@ -86,39 +86,65 @@ func EditBrand(c *gin.Context) {
 
 //>>>>>>>>>>>> Add to cart <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 func AddToCart(c *gin.Context) {
-
+	type data struct {
+		Product_id uint
+		Quantity   uint
+	}
+	var bindData data
 	var cartdata models.Cart
 	var productdata models.Product
-	if c.Bind(&cartdata) != nil {
+	if c.Bind(&bindData) != nil {
 		c.JSON(400, gin.H{
 			"Bad Request": "Could not bind the JSON data",
 		})
 		return
 	}
+
 	id, err := strconv.Atoi(c.GetString("userid"))
 	if err != nil {
 		c.JSON(400, gin.H{
 			"Error": "Error in string conversion",
 		})
 	}
-	DB := config.DBconnect()
-	DB.Table("products").Select("stock, price").Where("productid = ?", cartdata.Product_id).Scan(&productdata)
 
-	if cartdata.Quantity >= productdata.Stock {
+	db := config.DBconnect()
+	var count int64
+
+	//fetching the table products for checking stocks
+	db.Table("products").Select("stock, price").Where("productid = ?", bindData.Product_id).Scan(&productdata)
+	if bindData.Quantity >= productdata.Stock {
 		c.JSON(404, gin.H{
 			"Message": "Out of Stock",
 		})
 		return
 	}
-	totalprice := productdata.Price * cartdata.Quantity
+
+	//fetching the table carts for checking the product_id is exist
+	db.Model(&cartdata).Where("product_id = ?", bindData.Product_id).Count(&count)
+	if count > 0 {
+		var sum uint
+
+		//fetching the quantity form carts
+		db.Table("carts").Where("product_id = ?", bindData.Product_id).Select("SUM(quantity)").Row().Scan(&sum)
+		totalQuantity := sum + bindData.Quantity
+
+		//updating the quatity to the carts
+		db.Model(&cartdata).Where("product_id = ?", bindData.Product_id).Update("quantity", totalQuantity)
+		c.JSON(200, gin.H{
+			"Message": "Quantity added Successfully",
+		})
+		return
+	}
+
+	totalprice := productdata.Price * bindData.Quantity
 	cartitems := models.Cart{
-		Product_id: cartdata.Product_id,
-		Quantity:   cartdata.Quantity,
+		Product_id: bindData.Product_id,
+		Quantity:   bindData.Quantity,
 		Price:      productdata.Price,
 		Totalprice: totalprice,
 		Userid:     uint(id),
 	}
-	result := DB.Create(&cartitems)
+	result := db.Create(&cartitems)
 	if result.Error != nil {
 		c.JSON(400, gin.H{
 			"Error": result.Error.Error(),
@@ -128,7 +154,6 @@ func AddToCart(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"Message": "Added to the Cart Successfull",
 	})
-
 }
 
 //>>>>>>>>>>>>>>> View Products <<<<<<<<<<<<<<<<<<<<<<<

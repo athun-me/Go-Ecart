@@ -58,8 +58,15 @@ func AdminBlockUser(c *gin.Context) {
 
 	var user models.User
 	db := config.DBconnect()
+	var count int64
 
-	result := db.Model(user).Where("id = ?", id).Update("isblocked", true)
+	result := db.Model(user).Where("id = ?", id).Update("isblocked", true).Count(&count)
+	if count == 0 {
+		c.JSON(500, gin.H{
+			"Message": "Could not find the users",
+		})
+		return
+	}
 	if result.Error != nil {
 		c.JSON(404, gin.H{
 			"Error": result.Error.Error(),
@@ -80,8 +87,14 @@ func AdminUnlockUser(c *gin.Context) {
 
 	var user []models.User
 	db := config.DBconnect()
-
-	result := db.Model(user).Where("id = ?", id).Update("isblocked", false)
+	var count int64
+	result := db.Model(user).Where("id = ?", id).Update("isblocked", false).Count(&count)
+	if count ==0 {
+		c.JSON(500, gin.H{
+			"Message": "Could not find the users",
+		})
+		return
+	}
 	if result.Error != nil {
 		c.JSON(404, gin.H{
 			"Error": result.Error.Error(),

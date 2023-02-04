@@ -21,7 +21,7 @@ type Cart struct {
 	gorm.Model
 	Product    Product `gorm:"ForeignKey:Product_id"`
 	Product_id uint
-	Quantity   uint
+	Quantity   uint 
 	Price      uint
 	Totalprice uint
 	Userid     uint

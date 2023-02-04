@@ -11,11 +11,14 @@ import (
 func init() {
 	initializer.LoadEnv()
 	config.DBconnect()
+	initializer.LoadEnv()
+	config.DBconnect()
 }
 
 var R = gin.Default()
 
 func main() {
+
 	gin.SetMode(gin.ReleaseMode)
 
 	routes.AdminRouts(R)
@@ -23,3 +26,4 @@ func main() {
 
 	R.Run()
 }
+

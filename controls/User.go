@@ -14,12 +14,13 @@ import (
 )
 
 type checkUserData struct {
-	Firstname   string
-	Lastname    string
-	Email       string
-	Password    string
-	PhoneNumber int
-	Otp         string
+	Firstname       string
+	Lastname        string
+	Email           string
+	Password        string
+	ConfirmPassword string
+	PhoneNumber     int
+	Otp             string
 }
 
 //----------User signup--------------------------------------->
@@ -33,7 +34,6 @@ func UserSignUP(c *gin.Context) {
 		})
 		return
 	}
-
 	var temp_user models.User
 	hash, err := bcrypt.GenerateFromPassword([]byte(Data.Password), 10)
 	if err != nil {
@@ -166,10 +166,17 @@ func UserChangePassword(c *gin.Context) {
 		return
 	}
 
+	if userEnterData.Password != userEnterData.ConfirmPassword {
+		c.JSON(400, gin.H{
+			"Message": "Password not match",
+		})
+		return
+	}
+
 	id, err := strconv.Atoi(c.GetString("userid"))
 
 	if err != nil {
-		c.JSON(400, gin.H{
+		c.JSON(500, gin.H{
 			"Error": "Error in string conversion",
 		})
 		return
@@ -194,7 +201,7 @@ func UserChangePassword(c *gin.Context) {
 		return
 	} else {
 		c.JSON(200, gin.H{
-			"message": "Go to /updatepassword",
+			"message": "Go to /useraccess/updatepassword",
 		})
 	}
 }
@@ -292,7 +299,6 @@ func EditUserProfilebyUser(c *gin.Context) {
 		})
 		return
 	}
-
 	result = db.Model(&userData).Updates(models.User{
 		Firstname:   userEnterData.Firstname,
 		Lastname:    userEnterData.Lastname,
@@ -305,9 +311,13 @@ func EditUserProfilebyUser(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	c.JSON(200, gin.H{
-		"Message":      "Successfully Updated the profile",
-		"Updated data": userData,
+		"Message": "Successfully Updated the profile",
+		"Updated data": gin.H{
+			"First name": userData.Firstname,
+			"Last name":  userData.Lastname,
+			"Phone":      userData.PhoneNumber,
+		},
 	})
 }

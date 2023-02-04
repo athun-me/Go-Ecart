@@ -19,6 +19,7 @@ func Addaddress(c *gin.Context) {
 			"Error": "Error in string conversion",
 		})
 	}
+	var userName models.User
 	var userEnterData models.Address
 	if c.Bind(&userEnterData) != nil {
 		c.JSON(400, gin.H{
@@ -26,6 +27,7 @@ func Addaddress(c *gin.Context) {
 		})
 	}
 	db := config.DBconnect()
+
 	db.Model(&models.Address{}).Where("userid = ?", id).Update("defaultadd", false)
 	userEnterData.Userid = uint(id)
 	result := db.Create(&userEnterData)
@@ -35,7 +37,11 @@ func Addaddress(c *gin.Context) {
 		})
 		return
 	}
-	db.Model(&userEnterData).Where("addressid = ?", userEnterData.Addressid).Update("defaultadd", true)
+	db.Model(&userEnterData).Where("addressid = ?", userEnterData.Addressid).Updates(map[string]interface{}{
+		"defaultadd": true,
+		"name":       userName.Firstname,
+	})
+
 	c.JSON(200, gin.H{
 		"Message": "Address added succesfully",
 	})
@@ -47,14 +53,14 @@ func ShowAddress(c *gin.Context) {
 	var userAddres models.Address
 
 	db := config.DBconnect()
-	result := db.Raw("SELECT * from addresses WHERE userid = ?", id).Scan(&userAddres)
+	var count int64
+	result := db.Raw("SELECT * from addresses WHERE userid = ?", id).Scan(&userAddres).Count(&count)
+	if count == 0 {
+		c.JSON(500, gin.H{
+			"message": "User not found",
+		})
+	}
 
-	// if userAddres.User.ID == 0 {
-	// 	c.JSON(404, gin.H{
-	// 		"Message": "There is no address in this user id",
-	// 	})
-	// 	return
-	// }
 	if result.Error != nil {
 		c.JSON(404, gin.H{
 			"Error": result.Error.Error(),
@@ -120,8 +126,20 @@ func EditUserAddress(c *gin.Context) {
 		})
 		return
 	}
+
 	c.JSON(200, gin.H{
-		"Message":      "Successfully Updated the Address",
-		"Updated data": userAddress,
+		"Message": "Successfully Updated the Address",
+		"Updated address ": gin.H{
+			"Name":     userAddress.Name,
+			"Houseno":  userAddress.Houseno,
+			"Phoneno":  userAddress.Phoneno,
+			"Area":     userAddress.Area,
+			"Landmark": userAddress.Landmark,
+			"City":     userAddress.City,
+			"Pincode":  userAddress.Pincode,
+			"District": userAddress.District,
+			"State":    userAddress.State,
+			"Country":  userAddress.Country,
+		},
 	})
 }

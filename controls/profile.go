@@ -52,7 +52,6 @@ func EditUserProfileByadmin(c *gin.Context) {
 	}
 	userData.ID = uint(id)
 	db := config.DBconnect()
-
 	result := db.Model(&userData).Updates(models.User{
 		Firstname: userEnterdata.Firstname,
 		Lastname:  userEnterdata.Lastname,
@@ -68,7 +67,6 @@ func EditUserProfileByadmin(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"Message": "Profile Updated Successfully",
 	})
-
 }
 
 //>>>>>>>>>>> Admin profile <<<<<<<<<<<<<<<<<<<<<<<

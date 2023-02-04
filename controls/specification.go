@@ -50,7 +50,7 @@ func ViewBrand(c *gin.Context) {
 	})
 }
 
-//>>>>>>>>>>>>>>Edit brand <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+//>>>>>>>>>>>>>> Edit brand <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 func EditBrand(c *gin.Context) {
 	bid := c.Param("id")
 	id, err := strconv.Atoi(bid)
@@ -156,26 +156,27 @@ func ViewCart(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(200, gin.H{
-		"Cart Items": datas,
-	})
+	if datas != nil {
+		c.JSON(200, gin.H{
+			"Cart Items": datas,
+		})
+	} else {
+		c.JSON(404, gin.H{
+			"Message": "Cart is empty",
+		})
+	}
 }
 
 //>>>>>>>>>>>>>Remove cart <<<<<<<<<<<<<<<<<<<<<
 func DeleteCart(c *gin.Context) {
+	id := c.Param("id")
 
-	var cartData models.Cart
-	if c.Bind(&cartData) != nil {
-		c.JSON(400, gin.H{
-			"Bad Request": "Could not bind the JSON data",
-		})
-		return
-	}
 	db := config.DBconnect()
-	result := db.Exec("delete from carts where id= ?", cartData.ID)
-	if cartData.ID == 0 {
+	result := db.Exec("delete from carts where id= ?", id)
+	count := result.RowsAffected
+	if count == 0 {
 		c.JSON(400, gin.H{
-			"Bad Request": "Cart not exist",
+			"Message": "Cart not exist",
 		})
 		return
 	}
@@ -224,5 +225,4 @@ func AddImages(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"Message": "Image Added Successfully",
 	})
-
 }

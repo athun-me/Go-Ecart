@@ -14,12 +14,12 @@ func UserRouts(c *gin.Engine) {
 		User.POST("/signup/otpvalidate", controls.OtpValidation)
 		User.POST("/addaddress", midilware.UserAuth, controls.Addaddress)
 		User.POST("/addtocart", midilware.UserAuth, controls.AddToCart)
+		User.POST("/changepassword", midilware.UserAuth, controls.ChangePassword)
+		User.POST("/userchangepassword", midilware.UserAuth, controls.UserChangePassword)
 
 		User.PUT("/editaddress/:id", midilware.UserAuth, controls.EditUserAddress)
 		User.PUT("/forgotpassword", midilware.UserAuth, controls.ForgotPassword)
 		User.PUT("/forgotpasswordotpvalidation", midilware.UserAuth, controls.ForgotPasswordOtpValidation)
-		User.PUT("/changepassword", midilware.UserAuth, controls.ChangePassword)
-		User.PUT("/userchangepassword", midilware.UserAuth, controls.UserChangePassword)
 		User.PUT("/updatepassword", midilware.UserAuth, controls.Updatepassword)
 		User.PUT("/editprofile", midilware.UserAuth, controls.EditUserProfilebyUser)
 
@@ -32,6 +32,6 @@ func UserRouts(c *gin.Engine) {
 		User.GET("/logout", midilware.UserAuth, controls.UserSignout)
 		User.GET("/validate", midilware.UserAuth, controls.Validate)
 
-		User.DELETE("/deletecart", midilware.UserAuth, controls.DeleteCart)
+		User.DELETE("/deletecart/:id", midilware.UserAuth, controls.DeleteCart)
 	}
 }

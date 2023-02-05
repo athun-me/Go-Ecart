@@ -1,6 +1,7 @@
 package controls
 
 import (
+	"fmt"
 	"path/filepath"
 	"strconv"
 
@@ -95,7 +96,7 @@ func AddToCart(c *gin.Context) {
 	var productdata models.Product
 	if c.Bind(&bindData) != nil {
 		c.JSON(400, gin.H{
-			"Bad Request": "Could not bind the JSON data",
+			"Error": "Could not bind the JSON data",
 		})
 		return
 	}
@@ -121,7 +122,7 @@ func AddToCart(c *gin.Context) {
 
 	//fetching the table carts for checking the product_id is exist
 	db.Model(&cartdata).Where("product_id = ?", bindData.Product_id).Count(&count)
-	if count > 0 {
+	if count > 0 && id == int(cartdata.Userid) {
 		var sum uint
 
 		//fetching the quantity form carts
@@ -135,7 +136,6 @@ func AddToCart(c *gin.Context) {
 		})
 		return
 	}
-
 	totalprice := productdata.Price * bindData.Quantity
 	cartitems := models.Cart{
 		Product_id: bindData.Product_id,
@@ -250,4 +250,23 @@ func AddImages(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"Message": "Image Added Successfully",
 	})
+}
+
+func Payment(c *gin.Context) {
+	type data struct {
+		Method string
+	}
+	var bindData data
+	var cartDate models.Cart
+	db := config.DBconnect()
+	if c.Bind(&bindData) != nil {
+		c.JSON(400, gin.H{
+			"Error": "Could not bind the JSON data",
+		})
+		return
+	}
+	if bindData.Method == "COD" {
+		db.First(&cartDate)
+		fmt.Println("this is the the data :", cartDate.Totalprice)
+	}
 }

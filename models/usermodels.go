@@ -18,6 +18,7 @@ type User struct {
 
 type Address struct {
 	Addressid uint `JSON:"addressid" gorm:"primarykey;unique"`
+	
 	User      User `gorm:"ForeignKey:Userid"`
 	Userid    uint `JSON:"uid"`
 

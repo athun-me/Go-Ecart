@@ -16,6 +16,7 @@ func UserRouts(c *gin.Engine) {
 		User.POST("/addtocart", midilware.UserAuth, controls.AddToCart)
 		User.POST("/changepassword", midilware.UserAuth, controls.ChangePassword)
 		User.POST("/userchangepassword", midilware.UserAuth, controls.UserChangePassword)
+		User.POST("/payment", midilware.UserAuth, controls.Payment)
 
 		User.PUT("/editaddress/:id", midilware.UserAuth, controls.EditUserAddress)
 		User.PUT("/forgotpassword", midilware.UserAuth, controls.ForgotPassword)

@@ -253,6 +253,12 @@ func AddImages(c *gin.Context) {
 }
 
 func Payment(c *gin.Context) {
+	id, err := strconv.Atoi(c.GetString("userid"))
+	if err != nil {
+		c.JSON(400, gin.H{
+			"Error": "Error in string conversion",
+		})
+	}
 	type data struct {
 		Method string
 	}
@@ -266,7 +272,29 @@ func Payment(c *gin.Context) {
 		return
 	}
 	if bindData.Method == "COD" {
-		db.First(&cartDate)
-		fmt.Println("this is the the data :", cartDate.Totalprice)
+		db.First(&cartDate, "userid = ?", id)
+		var total_amount float64
+		db.Table("carts").Where("userid = ?", id).Select("SUM(totalprice)").Scan(&total_amount)
+
+		paymentData := models.Payment{
+			PaymentMethod: bindData.Method,
+			Totalamount:   uint(total_amount),
+			User_id:       uint(id),
+		}
+		result := db.Create(&paymentData)
+		if result.Error != nil {
+			c.JSON(400, gin.H{
+				"Error": result.Error.Error(),
+			})
+			return
+		}
+
+	} else if bindData.Method == "UPI" {
+		fmt.Println("UPI payement method")
+	} else {
+		c.JSON(400, gin.H{
+			"Error": "Payment field",
+		})
+		return
 	}
 }

@@ -15,6 +15,7 @@ require github.com/golang-jwt/jwt v3.2.2+incompatible
 require (
 	github.com/aws/aws-sdk-go v1.44.193 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
+	github.com/razorpay/razorpay-go v0.0.0-20220720130739-c296173f2d92 // indirect
 )
 
 require (

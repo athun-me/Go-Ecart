@@ -1,7 +1,6 @@
 package controls
 
 import (
-	"fmt"
 	"path/filepath"
 	"strconv"
 
@@ -9,6 +8,7 @@ import (
 	"github.com/athunlal/models"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/razorpay/razorpay-go"
 )
 
 //>>>>>> Add brand <<<<<<<<<<<<<<<<<<<<
@@ -195,9 +195,15 @@ func ViewCart(c *gin.Context) {
 //>>>>>>>>>>>>>Remove cart <<<<<<<<<<<<<<<<<<<<<
 func DeleteCart(c *gin.Context) {
 	id := c.Param("id")
+	userid, err := strconv.Atoi(c.GetString("userid"))
+	if err != nil {
+		c.JSON(400, gin.H{
+			"Error": "Error in string conversion",
+		})
+	}
 
 	db := config.DBconnect()
-	result := db.Exec("delete from carts where id= ?", id)
+	result := db.Exec("delete from carts where id= ? AND userid = ?", id, userid)
 	count := result.RowsAffected
 	if count == 0 {
 		c.JSON(400, gin.H{
@@ -252,7 +258,9 @@ func AddImages(c *gin.Context) {
 	})
 }
 
+//>>>>>>>>>>>>>>>> Payment <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 func Payment(c *gin.Context) {
+	//fetching user id from token
 	id, err := strconv.Atoi(c.GetString("userid"))
 	if err != nil {
 		c.JSON(400, gin.H{
@@ -264,24 +272,36 @@ func Payment(c *gin.Context) {
 	}
 	var bindData data
 	var cartDate models.Cart
-	db := config.DBconnect()
+
+	//binding the data from posman
 	if c.Bind(&bindData) != nil {
 		c.JSON(400, gin.H{
 			"Error": "Could not bind the JSON data",
 		})
 		return
 	}
-	if bindData.Method == "COD" {
-		db.First(&cartDate, "userid = ?", id)
-		var total_amount float64
-		db.Table("carts").Where("userid = ?", id).Select("SUM(totalprice)").Scan(&total_amount)
 
-		paymentData := models.Payment{
-			PaymentMethod: bindData.Method,
-			Totalamount:   uint(total_amount),
-			User_id:       uint(id),
-		}
-		result := db.Create(&paymentData)
+	db := config.DBconnect()
+
+	//fetching the data from the table carts by id
+	result := db.First(&cartDate, "userid = ?", id)
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"Error": result.Error.Error(),
+		})
+		return
+	}
+	//fetching the total amount from the table carts
+	var total_amount float64
+	result = db.Table("carts").Where("userid = ?", id).Select("SUM(totalprice)").Scan(&total_amount)
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"Error": result.Error.Error(),
+		})
+		return
+	}
+
+	if bindData.Method == "COD" {
 		if result.Error != nil {
 			c.JSON(400, gin.H{
 				"Error": result.Error.Error(),
@@ -289,8 +309,63 @@ func Payment(c *gin.Context) {
 			return
 		}
 
+		paymentData := models.Payment{
+			PaymentMethod: bindData.Method,
+			Totalamount:   uint(total_amount),
+			User_id:       uint(id),
+		}
+
+		result = db.Create(&paymentData)
+		if result.Error != nil {
+			c.JSON(400, gin.H{
+				"Error": result.Error.Error(),
+			})
+			return
+		}
+		c.JSON(200, gin.H{
+			"Message": "Payment Method COD",
+			"Status":  "Completed",
+		})
+
 	} else if bindData.Method == "UPI" {
-		fmt.Println("UPI payement method")
+		//razor pay code
+		client := razorpay.NewClient("rzp_test_mCL1zwPhJbeuND", "qUeHjny0jl14sphKqOFpyq9M")
+
+		data := map[string]interface{}{
+			"amount":   cartDate.Totalprice,
+			"currency": "INR",
+			"receipt":  "some_receipt_id",
+		}
+		body, err := client.Order.Create(data, nil)
+
+		if err != nil {
+			c.JSON(500, gin.H{
+				"Error": err.Error(),
+			})
+			return
+		} else {
+			paymentData := models.Payment{
+				PaymentMethod: bindData.Method,
+				Totalamount:   uint(total_amount),
+				User_id:       uint(id),
+			}
+
+			result = db.Create(&paymentData)
+			if result.Error != nil {
+				c.JSON(400, gin.H{
+					"Error": result.Error.Error(),
+				})
+				return
+			}
+			orderID := body["id"].(string)
+			amount := body["amount"].(float64)
+			c.JSON(200, gin.H{
+				"Order ID": orderID,
+				"Amount":   amount,
+				"Message":  "Payment Method UPI",
+				"Status":   "Completed",
+			})
+		}
 	} else {
 		c.JSON(400, gin.H{
 			"Error": "Payment field",

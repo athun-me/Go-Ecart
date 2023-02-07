@@ -1,6 +1,8 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 type Payment struct {
 	Payment_id       uint `JSON:"payment_id" gorm:"primarykey"`
@@ -10,7 +12,7 @@ type Payment struct {
 	Totalamount      uint   `jSON:"total_amount" gorm:"not null"`
 	PaymentPending   bool   `JSON:"status" gorm:"default:false"`
 	Paymentcompleted bool   `JSON:"status" gorm:"default:false"`
-	PaymentFaild  bool   `JSON:"status" gorm:"default:false"`
+	PaymentFaild     bool   `JSON:"status" gorm:"default:false"`
 }
 
 type OderDetails struct {
@@ -29,4 +31,12 @@ type OderDetails struct {
 	Deliverd      bool `JSON:"Deliverd" gorm:"default:false"`
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
+}
+
+type Coupon struct {
+	ID            int
+	CouponCode    string
+	DiscountPrice int
+	CreatedAt     time.Time
+	Expired       time.Time
 }

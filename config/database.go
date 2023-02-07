@@ -24,6 +24,7 @@ func DBconnect() *gorm.DB {
 	DB.AutoMigrate(&models.Image{})
 	DB.AutoMigrate(&models.Payment{})
 	DB.AutoMigrate(&models.OderDetails{})
+	DB.AutoMigrate(&models.Coupon{})
 
 	return DB
 

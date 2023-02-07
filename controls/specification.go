@@ -1,8 +1,11 @@
 package controls
 
 import (
+	"fmt"
+
 	"path/filepath"
 	"strconv"
+	"time"
 
 	"github.com/athunlal/config"
 	"github.com/athunlal/models"
@@ -13,6 +16,7 @@ import (
 
 //>>>>>> Add brand <<<<<<<<<<<<<<<<<<<<
 func AddBrands(c *gin.Context) {
+	fmt.Println("><")
 	var addbrand models.Brand
 	if c.Bind(&addbrand) != nil {
 		c.JSON(400, gin.H{
@@ -371,5 +375,100 @@ func Payment(c *gin.Context) {
 			"Error": "Payment field",
 		})
 		return
+	}
+}
+
+// >>>>>>>>>>>>>>>> coupon <<<<<<<<<<<<<<<<<<<
+func AddCoupon(c *gin.Context) {
+
+	type data struct {
+		CouponCode    string
+		Year          uint
+		Month         uint
+		Day           uint
+		DiscountPrice int
+		Expired       time.Time
+	}
+
+	var userEnterData data
+	var couponData []models.Coupon
+	db := config.DBconnect()
+
+	if c.Bind(&userEnterData) != nil {
+		c.JSON(400, gin.H{
+			"Error": "Could not bind the JSON data",
+		})
+		return
+	}
+	specificTime := time.Date(int(userEnterData.Year), time.Month(userEnterData.Month), int(userEnterData.Day), 0, 0, 0, 0, time.UTC)
+
+	userEnterData.Expired = specificTime
+
+	err := db.First(&couponData, "coupon_code = ?", userEnterData.CouponCode).Error
+	if err != nil {
+		Data := models.Coupon{
+			CouponCode:    userEnterData.CouponCode,
+			DiscountPrice: userEnterData.DiscountPrice,
+			Expired:       specificTime,
+		}
+		result := db.Create(&Data)
+		if result.Error != nil {
+			c.JSON(400, gin.H{
+				"Error": result.Error.Error(),
+			})
+		}
+		c.JSON(200, gin.H{
+			"message": userEnterData,
+		})
+	} else {
+		c.JSON(400, gin.H{
+			"message": "Coupon already exist",
+		})
+	}
+
+}
+
+//>>>>>>>>>>>>>> Check coupon <<<<<<<<<<<<<<<<<<<<
+func CheckCoupon(c *gin.Context) {
+	type data struct {
+		Coupon string
+	}
+	var coupon models.Coupon
+	var userEnterData data
+
+	if c.Bind(&userEnterData) != nil {
+		c.JSON(400, gin.H{
+			"Error": "Could not bind the JSON data",
+		})
+		return
+	}
+
+	db := config.DBconnect()
+
+	var count int64
+	result := db.Find(&coupon, "coupon_code = ?", userEnterData.Coupon).Count(&count)
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"Error": result.Error.Error(),
+		})
+	}
+
+	if count == 0 {
+		c.JSON(400, gin.H{
+			"message": "Coupon not exist",
+		})
+		return
+	}
+	currentTime := time.Now()
+	expiredData := coupon.Expired
+
+	if currentTime.Before(expiredData) {
+		c.JSON(200, gin.H{
+			"message": "Coupon valide",
+		})
+	} else if currentTime.After(expiredData) {
+		c.JSON(400, gin.H{
+			"message": "Coupon expired",
+		})
 	}
 }

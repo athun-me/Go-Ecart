@@ -386,7 +386,7 @@ func AddCoupon(c *gin.Context) {
 		Year          uint
 		Month         uint
 		Day           uint
-		DiscountPrice int
+		DiscountPrice float64
 		Expired       time.Time
 	}
 
@@ -403,9 +403,15 @@ func AddCoupon(c *gin.Context) {
 	specificTime := time.Date(int(userEnterData.Year), time.Month(userEnterData.Month), int(userEnterData.Day), 0, 0, 0, 0, time.UTC)
 
 	userEnterData.Expired = specificTime
-
-	err := db.First(&couponData, "coupon_code = ?", userEnterData.CouponCode).Error
-	if err != nil {
+	var count int64
+	result := db.First(&couponData, "coupon_code = ?", userEnterData.CouponCode).Count(&count)
+	if result.Error != nil {
+		c.JSON(404, gin.H{
+			"Error": result.Error.Error(),
+		})
+		return
+	}
+	if count == 0 {
 		Data := models.Coupon{
 			CouponCode:    userEnterData.CouponCode,
 			DiscountPrice: userEnterData.DiscountPrice,
@@ -471,4 +477,138 @@ func CheckCoupon(c *gin.Context) {
 			"message": "Coupon expired",
 		})
 	}
+}
+
+//>>>>>>>>>>>>>> wish list  <<<<<<<<<<<<<<<<<<<
+func Wishlist(c *gin.Context) {
+	userId, err := strconv.Atoi(c.GetString("userid"))
+	if err != nil {
+		c.JSON(400, gin.H{
+			"Error": "Error in string conversion",
+		})
+	}
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(400, gin.H{
+			"Error": "Error in string conversion",
+		})
+	}
+
+	db := config.DBconnect()
+	Data := models.Wishlist{
+		Product_id: uint(id),
+		Userid:     uint(userId),
+	}
+	result := db.Create(&Data)
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"Error": result.Error.Error(),
+		})
+	}
+	c.JSON(200, gin.H{
+		"message": "Wish list added sucessfully",
+	})
+}
+
+//>>>>>>>>>>>>>>>>>> Add catogeries <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+func AddCatogeries(c *gin.Context) {
+
+	type Data struct {
+		CategoryName string
+	}
+	var category Data
+	var CatagoryData models.Catogery
+	if c.Bind(&category) != nil {
+		c.JSON(400, gin.H{
+			"Error": "countl not bind the JSON data",
+		})
+	}
+	db := config.DBconnect()
+	var count int64
+	result := db.Find(&CatagoryData, "catogery_name = ?", category.CategoryName).Count(&count)
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"Error": result.Error.Error(),
+		})
+	}
+	if count == 0 {
+		createData := models.Catogery{
+			CatogeryName: category.CategoryName,
+		}
+		result = db.Create(&createData)
+		if result.Error != nil {
+			c.JSON(400, gin.H{
+				"Error": result.Error.Error(),
+			})
+		}
+		c.JSON(200, gin.H{
+			"message": "Catogery created",
+		})
+	} else {
+		c.JSON(400, gin.H{
+			"message": "Catogery already exist",
+		})
+	}
+}
+
+//>>>>>>>>>>Search by catogery <<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+func FilteringByCatogery(c *gin.Context) {
+	id := c.Param("id")
+
+	var products []models.Product
+	db := config.DBconnect()
+	result := db.Where("catogery_id = ?", id).Find(&products)
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"Error": result.Error.Error(),
+		})
+	}
+	c.JSON(200, gin.H{
+		"products": products,
+	})
+
+}
+
+//>>>>>>>>>>>>>>>>>> Search <<<<<<<<<<<<<<<<<<<<<
+
+func Search(c *gin.Context) {
+	type Data struct {
+		SearchValue string
+	}
+	var userEnterData Data
+	if c.Bind(&userEnterData) != nil {
+		c.JSON(400, gin.H{
+			"Error": "countl not bind the JSON data",
+		})
+	}
+	var products []models.Product
+	db := config.DBconnect()
+	var count int64
+	result := db.Raw("SELECT * FROM products WHERE brand_id (SELECT id FROM brands WHERE brandname LIKE ?)", "%"+userEnterData.SearchValue+"%").Scan(&products).Count(&count)
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"Error": result.Error.Error(),
+		})
+	}
+
+	if count <= 0 {
+		result := db.Raw("SELECT * FROM products WHERE productname LIKE ?", "%"+userEnterData.SearchValue+"%").Find(&products)
+		if result.Error != nil {
+			c.JSON(400, gin.H{
+				"Error": result.Error.Error(),
+			})
+		}
+	}
+
+	if count == 0 {
+		c.JSON(400, gin.H{
+			"Message": "Product not exist",
+		})
+		return
+	}
+	c.JSON(200, gin.H{
+		"products": products,
+	})
 }

@@ -17,7 +17,8 @@ func UserRouts(c *gin.Engine) {
 		User.POST("/changepassword", midilware.UserAuth, controls.ChangePassword)
 		User.POST("/userchangepassword", midilware.UserAuth, controls.UserChangePassword)
 		User.POST("/payment", midilware.UserAuth, controls.Payment)
-		User.POST("/checkcoupon",midilware.UserAuth, controls.CheckCoupon)
+		User.POST("/checkcoupon", midilware.UserAuth, controls.CheckCoupon)
+		User.POST("/checkout", midilware.UserAuth, controls.CheckOut)
 
 		User.PUT("/editaddress/:id", midilware.UserAuth, controls.EditUserAddress)
 		User.PUT("/forgotpassword", midilware.UserAuth, controls.ForgotPassword)
@@ -25,7 +26,7 @@ func UserRouts(c *gin.Engine) {
 		User.PUT("/updatepassword", midilware.UserAuth, controls.Updatepassword)
 		User.PUT("/editprofile", midilware.UserAuth, controls.EditUserProfilebyUser)
 
-		User.GET("/checkout", midilware.UserAuth, controls.CheckOut)
+		User.GET("/wishlist/:id", midilware.UserAuth, controls.Wishlist)
 		User.GET("/viewproducts", midilware.UserAuth, controls.ViewProducts)
 		User.GET("/viewbrand", midilware.UserAuth, controls.ViewBrand)
 		User.GET("/viewcart", midilware.UserAuth, controls.ViewCart)
@@ -33,6 +34,8 @@ func UserRouts(c *gin.Engine) {
 		User.GET("/searchaddress/:id", midilware.UserAuth, controls.ShowAddress)
 		User.GET("/logout", midilware.UserAuth, controls.UserSignout)
 		User.GET("/validate", midilware.UserAuth, controls.Validate)
+		User.GET("/fileterbycatogery/:id", midilware.UserAuth, controls.FilteringByCatogery)
+		User.GET("/search", midilware.UserAuth, controls.Search)
 
 		User.DELETE("/deletecart/:id", midilware.UserAuth, controls.DeleteCart)
 	}

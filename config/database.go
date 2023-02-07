@@ -15,6 +15,7 @@ func DBconnect() *gorm.DB {
 	if err != nil {
 		fmt.Println(err)
 	}
+
 	DB.AutoMigrate(&models.User{})
 	DB.AutoMigrate(&models.Admin{})
 	DB.AutoMigrate(&models.Address{})
@@ -25,6 +26,8 @@ func DBconnect() *gorm.DB {
 	DB.AutoMigrate(&models.Payment{})
 	DB.AutoMigrate(&models.OderDetails{})
 	DB.AutoMigrate(&models.Coupon{})
+	DB.AutoMigrate(&models.Wishlist{})
+	DB.AutoMigrate(&models.Catogery{})
 
 	return DB
 

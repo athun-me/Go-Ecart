@@ -36,7 +36,7 @@ type OderDetails struct {
 type Coupon struct {
 	ID            int
 	CouponCode    string
-	DiscountPrice int
+	DiscountPrice float64
 	CreatedAt     time.Time
 	Expired       time.Time
 }

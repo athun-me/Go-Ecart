@@ -14,26 +14,41 @@ import (
 //>>>>>>>>>>>>>> Add products <<<<<<<<<<<<<<<<<<<<<<<<<<
 func AddProduct(c *gin.Context) {
 	var product models.Product
-
-	if c.Bind(&product) != nil {
+	err := c.Bind(&product)
+	if err != nil {
 		c.JSON(400, gin.H{
 			"error": "Data binding error",
 		})
+		fmt.Println(err)
 		return
 	}
-	db := config.DBconnect()
-	result := db.Create(&product)
 
+	db := config.DBconnect()
+	var count int64
+	result := db.Find(&product, "productname = ?", product.Productname).Count(&count)
 	if result.Error != nil {
 		c.JSON(404, gin.H{
 			"Error": result.Error.Error(),
 		})
 		return
 	}
-	c.JSON(200, gin.H{
-		"Message":      "Successfully Added the Product",
-		"Product data": product,
-	})
+	if count == 0 {
+		result := db.Create(&product)
+		if result.Error != nil {
+			c.JSON(404, gin.H{
+				"Error": result.Error.Error(),
+			})
+			return
+		}
+		c.JSON(200, gin.H{
+			"Message":      "Successfully Added the Product",
+			"Product data": product,
+		})
+	} else {
+		c.JSON(400, gin.H{
+			"Message": "Product already exist",
+		})
+	}
 }
 
 //>>>>>>>>>>>>>>>>> View products <<<<<<<<<<<<<<<<<<<<<

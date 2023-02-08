@@ -11,7 +11,6 @@ import (
 	"github.com/athunlal/models"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/razorpay/razorpay-go"
 )
 
 //>>>>>> Add brand <<<<<<<<<<<<<<<<<<<<
@@ -262,122 +261,6 @@ func AddImages(c *gin.Context) {
 	})
 }
 
-//>>>>>>>>>>>>>>>> Payment <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-func Payment(c *gin.Context) {
-	//fetching user id from token
-	id, err := strconv.Atoi(c.GetString("userid"))
-	if err != nil {
-		c.JSON(400, gin.H{
-			"Error": "Error in string conversion",
-		})
-	}
-	type data struct {
-		Method string
-	}
-	var bindData data
-	var cartDate models.Cart
-
-	//binding the data from posman
-	if c.Bind(&bindData) != nil {
-		c.JSON(400, gin.H{
-			"Error": "Could not bind the JSON data",
-		})
-		return
-	}
-
-	db := config.DBconnect()
-
-	//fetching the data from the table carts by id
-	result := db.First(&cartDate, "userid = ?", id)
-	if result.Error != nil {
-		c.JSON(400, gin.H{
-			"Error": result.Error.Error(),
-		})
-		return
-	}
-	//fetching the total amount from the table carts
-	var total_amount float64
-	result = db.Table("carts").Where("userid = ?", id).Select("SUM(totalprice)").Scan(&total_amount)
-	if result.Error != nil {
-		c.JSON(400, gin.H{
-			"Error": result.Error.Error(),
-		})
-		return
-	}
-
-	if bindData.Method == "COD" {
-		if result.Error != nil {
-			c.JSON(400, gin.H{
-				"Error": result.Error.Error(),
-			})
-			return
-		}
-
-		paymentData := models.Payment{
-			PaymentMethod: bindData.Method,
-			Totalamount:   uint(total_amount),
-			User_id:       uint(id),
-		}
-
-		result = db.Create(&paymentData)
-		if result.Error != nil {
-			c.JSON(400, gin.H{
-				"Error": result.Error.Error(),
-			})
-			return
-		}
-		c.JSON(200, gin.H{
-			"Message": "Payment Method COD",
-			"Status":  "Completed",
-		})
-
-	} else if bindData.Method == "UPI" {
-		//razor pay code
-		client := razorpay.NewClient("rzp_test_mCL1zwPhJbeuND", "qUeHjny0jl14sphKqOFpyq9M")
-
-		data := map[string]interface{}{
-			"amount":   cartDate.Totalprice,
-			"currency": "INR",
-			"receipt":  "some_receipt_id",
-		}
-		body, err := client.Order.Create(data, nil)
-
-		if err != nil {
-			c.JSON(500, gin.H{
-				"Error": err.Error(),
-			})
-			return
-		} else {
-			paymentData := models.Payment{
-				PaymentMethod: bindData.Method,
-				Totalamount:   uint(total_amount),
-				User_id:       uint(id),
-			}
-
-			result = db.Create(&paymentData)
-			if result.Error != nil {
-				c.JSON(400, gin.H{
-					"Error": result.Error.Error(),
-				})
-				return
-			}
-			orderID := body["id"].(string)
-			amount := body["amount"].(float64)
-			c.JSON(200, gin.H{
-				"Order ID": orderID,
-				"Amount":   amount,
-				"Message":  "Payment Method UPI",
-				"Status":   "Completed",
-			})
-		}
-	} else {
-		c.JSON(400, gin.H{
-			"Error": "Payment field",
-		})
-		return
-	}
-}
-
 // >>>>>>>>>>>>>>>> coupon <<<<<<<<<<<<<<<<<<<
 func AddCoupon(c *gin.Context) {
 
@@ -573,7 +456,7 @@ func FilteringByCatogery(c *gin.Context) {
 
 //>>>>>>>>>>>>>>>>>> Search <<<<<<<<<<<<<<<<<<<<<
 
-func Search(c *gin.Context) {
+func SearchProduct(c *gin.Context) {
 	type Data struct {
 		SearchValue string
 	}
@@ -610,5 +493,141 @@ func Search(c *gin.Context) {
 	}
 	c.JSON(200, gin.H{
 		"products": products,
+	})
+}
+
+//>>>>>>>>>> Oder Details <<<<<<<<<<<<<<<<
+
+func OderDetails(c *gin.Context) {
+	userId, err := strconv.Atoi(c.GetString("userid"))
+	if err != nil {
+		c.JSON(400, gin.H{
+			"Error": "Error in string conversion",
+		})
+	}
+
+	var UserAddress models.Address
+	var UserPayment models.Payment
+	var UserCart []models.Cart
+
+	db := config.DBconnect()
+	result := db.Find(&UserAddress, "userid = ? AND defaultadd = true", userId)
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"Error": result.Error.Error(),
+		})
+	}
+	result = db.Find(&UserPayment, "user_id = ?", userId)
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"Error": result.Error.Error(),
+		})
+	}
+	result = db.Find(&UserCart, "userid = ?", userId)
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"Error": result.Error.Error(),
+		})
+		return
+	}
+
+	for _, UserCart := range UserCart {
+		OderDetails := models.OderDetails{
+			Userid:     uint(userId),
+			Address_id: UserAddress.Addressid,
+			Paymentid:  UserPayment.Payment_id,
+			Product_id: UserCart.Product_id,
+			Quantity:   UserCart.Quantity,
+			Status:     "Pending",
+		}
+		result = db.Create(&OderDetails)
+		if result.Error != nil {
+			c.JSON(400, gin.H{
+				"Error": result.Error.Error(),
+			})
+			return
+		}
+	}
+	c.JSON(200, gin.H{
+		"Message": "Oder Added succesfully",
+	})
+}
+
+//>>>>>>>>>> Show oder <<<<<<<<<<<<<<<<<<<
+func ShowOder(c *gin.Context) {
+	userId, err := strconv.Atoi(c.GetString("userid"))
+	if err != nil {
+		c.JSON(400, gin.H{
+			"Error": "Error in string conversion",
+		})
+		return
+	}
+	var userOder []models.OderDetails
+	var products []models.Product
+	// var userProduct models.Product
+
+	db := config.DBconnect()
+	result := db.Find(&userOder, "userid = ?", userId)
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"Error": result.Error.Error(),
+		})
+		return
+	}
+
+	for _, order := range userOder {
+
+		db.Find(&products, "productid = ? ", order.Product_id)
+
+		c.JSON(200, gin.H{
+			"Product name ": products[0].Productname,
+			"Price":         products[0].Price,
+			"Description":   products[0].Description,
+			"Quantity":      userOder[0].Quantity,
+		})
+	}
+}
+
+//>>>>>>>>>>>>>>< Cancel Oder <<<<<<<<<<<<<<<<<<<<
+func CancelOder(c *gin.Context) {
+	userid, err := strconv.Atoi(c.GetString("userid"))
+	if err != nil {
+		c.JSON(400, gin.H{
+			"Error": "Error in string conversion",
+		})
+	}
+	var oder models.OderDetails
+	db := config.DBconnect()
+	result := db.Model(&oder).Where("userid = ?", userid).Update("status", "Canceled")
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"Error": result.Error.Error(),
+		})
+		return
+	}
+	c.JSON(200, gin.H{
+		"Massage": "oder canceld",
+	})
+}
+
+//>>>>>>>>>>>>>>< Retrun Oder <<<<<<<<<<<<<<<<<<<<
+func ReturnOder(c *gin.Context) {
+	userid, err := strconv.Atoi(c.GetString("userid"))
+	if err != nil {
+		c.JSON(400, gin.H{
+			"Error": "Error in string conversion",
+		})
+	}
+	var oder models.OderDetails
+	db := config.DBconnect()
+	result := db.Model(&oder).Where("userid = ?", userid).Update("status", "Product return")
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"Error": result.Error.Error(),
+		})
+		return
+	}
+	c.JSON(200, gin.H{
+		"Massage": "Product Return",
 	})
 }

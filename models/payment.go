@@ -16,21 +16,19 @@ type Payment struct {
 }
 
 type OderDetails struct {
-	Oderid        uint `JSON:"oderid" gorm:"primarykey"`
-	Userid        uint
-	User          User `gorm:"ForeignKey:Userid"`
-	Address_id    uint
-	Address       Address `gorm:"ForeignKey:Address_id"`
-	Paymentid     uint
-	Payment       Payment `gorm:"ForeignKey:Paymentid"`
-	Product_id    uint
-	Product       Product `gorm:"ForeignKey:Product_id"`
-	Quantity      uint
-	OderConfirmed bool `JSON:"OderConfirmed" gorm:"default:false"`
-	Shipped       bool `JSON:"Shipped" gorm:"default:false"`
-	Deliverd      bool `JSON:"Deliverd" gorm:"default:false"`
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
+	Oderid     uint `JSON:"oderid" gorm:"primarykey"`
+	Userid     uint
+	User       User `gorm:"ForeignKey:Userid"`
+	Address_id uint
+	Address    Address `gorm:"ForeignKey:Address_id"`
+	Paymentid  uint
+	Payment    Payment `gorm:"ForeignKey:Paymentid"`
+	Product_id uint
+	Product    Product `gorm:"ForeignKey:Product_id"`
+	Quantity   uint
+	Status     string `jSON:"Status" gorm:"not null"`
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
 }
 
 type Coupon struct {

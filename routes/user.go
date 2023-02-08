@@ -35,7 +35,11 @@ func UserRouts(c *gin.Engine) {
 		User.GET("/logout", midilware.UserAuth, controls.UserSignout)
 		User.GET("/validate", midilware.UserAuth, controls.Validate)
 		User.GET("/fileterbycatogery/:id", midilware.UserAuth, controls.FilteringByCatogery)
-		User.GET("/search", midilware.UserAuth, controls.Search)
+		User.GET("/search", midilware.UserAuth, controls.SearchProduct)
+		User.GET("/showoder", midilware.UserAuth, controls.ShowOder)
+		User.GET("/canceloder", midilware.UserAuth, controls.CancelOder)
+		User.GET("/return", midilware.UserAuth, controls.ReturnOder)
+
 
 		User.DELETE("/deletecart/:id", midilware.UserAuth, controls.DeleteCart)
 	}

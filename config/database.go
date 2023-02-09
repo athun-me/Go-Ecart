@@ -28,7 +28,7 @@ func DBconnect() *gorm.DB {
 	DB.AutoMigrate(&models.Coupon{})
 	DB.AutoMigrate(&models.Wishlist{})
 	DB.AutoMigrate(&models.Catogery{})
-
+	DB.AutoMigrate(&models.RazorPay{})
 
 	return DB
 

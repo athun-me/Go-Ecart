@@ -16,9 +16,8 @@ func UserRouts(c *gin.Engine) {
 		User.POST("/addtocart", midilware.UserAuth, controls.AddToCart)
 		User.POST("/changepassword", midilware.UserAuth, controls.ChangePassword)
 		User.POST("/userchangepassword", midilware.UserAuth, controls.UserChangePassword)
-		User.POST("/payment", midilware.UserAuth, controls.Payment)
 		User.POST("/checkcoupon", midilware.UserAuth, controls.CheckCoupon)
-		User.POST("/checkout", midilware.UserAuth, controls.CheckOut)
+		User.POST("/applycoupon", midilware.UserAuth, controls.Applycoupon)
 
 		User.PUT("/editaddress/:id", midilware.UserAuth, controls.EditUserAddress)
 		User.PUT("/forgotpassword", midilware.UserAuth, controls.ForgotPassword)
@@ -26,6 +25,8 @@ func UserRouts(c *gin.Engine) {
 		User.PUT("/updatepassword", midilware.UserAuth, controls.Updatepassword)
 		User.PUT("/editprofile", midilware.UserAuth, controls.EditUserProfilebyUser)
 
+		
+		User.GET("/checkout", midilware.UserAuth, controls.CheckOut)
 		User.GET("/wishlist/:id", midilware.UserAuth, controls.Wishlist)
 		User.GET("/viewproducts", midilware.UserAuth, controls.ViewProducts)
 		User.GET("/viewbrand", midilware.UserAuth, controls.ViewBrand)
@@ -40,7 +41,13 @@ func UserRouts(c *gin.Engine) {
 		User.GET("/canceloder", midilware.UserAuth, controls.CancelOder)
 		User.GET("/return", midilware.UserAuth, controls.ReturnOder)
 
-
 		User.DELETE("/deletecart/:id", midilware.UserAuth, controls.DeleteCart)
+
+		//payments route
+		User.POST("/payment/cod", midilware.UserAuth, controls.CashOnDelivery)
+		User.GET("/payment/razorpay", midilware.UserAuth, controls.Razorpay)
+		User.GET("/payment/success", midilware.UserAuth, controls.RazorpaySuccess)
+		User.GET("/success", midilware.UserAuth, controls.Success)
+
 	}
 }

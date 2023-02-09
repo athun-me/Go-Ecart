@@ -5,14 +5,14 @@ import (
 )
 
 type Payment struct {
-	Payment_id       uint `JSON:"payment_id" gorm:"primarykey"`
-	User             User `gorm:"ForeignKey:User_id"`
-	User_id          uint
-	PaymentMethod    string `jSON:"payment_method" gorm:"not null"`
-	Totalamount      uint   `jSON:"total_amount" gorm:"not null"`
-	PaymentPending   bool   `JSON:"status" gorm:"default:false"`
-	Paymentcompleted bool   `JSON:"status" gorm:"default:false"`
-	PaymentFaild     bool   `JSON:"status" gorm:"default:false"`
+	Payment_id    uint `JSON:"payment_id" gorm:"primarykey"`
+	User          User `gorm:"ForeignKey:User_id"`
+	User_id       uint
+	PaymentMethod string `jSON:"payment_method" gorm:"not null"`
+	Totalamount   uint   `jSON:"total_amount" gorm:"not null"`
+	Status        string `jSON:"Status" gorm:"not null"`
+	RazorPay      RazorPay  `gorm:"ForeignKey:razorpayid"`
+	Razorpayid    string    `JSON:"razorpayid" gorm:"defualt:null"`
 }
 
 type OderDetails struct {
@@ -37,4 +37,12 @@ type Coupon struct {
 	DiscountPrice float64
 	CreatedAt     time.Time
 	Expired       time.Time
+}
+
+type RazorPay struct {
+	UserID          uint   `JSON:"userid"`
+	RazorPaymentId  string `JSON:"razorpaymentid" gorm:"primaryKey"`
+	RazorPayOrderID string `JSON:"razorpayorderid"`
+	Signature       string `JSON:"signature"`
+	AmountPaid      string `JSON:"amountpaid"`
 }

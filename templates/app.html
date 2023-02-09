@@ -1,0 +1,128 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+</head>
+<body>
+<div class="w-100 d-flex justify-content-center mt-5 pt-5">
+ 
+  <form class="w-50 pt-5" action="">
+    <h1 class="mb-5 text-center">Payment Gateway</h1>
+    <fieldset disabled>
+      <div class="form-group ">
+        <label for="disabledTextInput">User ID</label>
+        <input type="text"  class="form-control mt-3" id="userid" value="{{.userid}}">
+        <script>console.log("------------------in user id----------")</script>
+      </div>
+      <div class="form-group mt-3">
+        <label for="disabledTextInput">Payment ID</label>
+        <input type="text"  class="form-control mt-3" id="paymentid" value="{{.paymentid}}">
+      </div>
+      <div class="form-group mt-3">
+        <label for="disabledTextInput">Total Amount</label>
+        <input type="text"  class="form-control mt-3" id="total" value="{{.totalprice}}">
+      </div>
+    </fieldset>
+    <div class="d-flex justify-content-center">
+      <button type="submit" id="rzp-button1" class="btn btn-primary mt-5 w-50 ">Submit</button>
+      </div>
+  </form>
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+
+
+
+
+
+
+
+<script>
+  console.log("--------------in test mode------------")
+
+const userid=document.getElementById("userid").value
+
+   const orderid=document.getElementById("paymentid").value
+  var total=document.getElementById("total").value
+  var coupon=document.getElementById("coupon")
+
+
+
+var options = {
+    "key": "rzp_test_eJlbBq8gn1MEB1", // Enter the Key ID generated from the Dashboard
+    "amount": "{{.total}}", // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
+    "currency": "INR",
+    "name": "EFootball Store",
+    "description": "Test Transaction",
+    "image": "https://example.com/your_logo",
+    "order_id": "{{.paymentid}}", //This is a sample Order ID. Pass the `id` obtained in the response of Step 1
+    "handler": function (response){
+      console.log("-------------response------------"+response)
+        verifyPayment(response, userid , orderid);
+    },
+    "prefill": {
+ 
+        "email": "{{.email}}",
+        "contact": "{{.phonenumber}}"
+    },
+    "notes": {
+        "address": "Razorpay Corporate Office"
+    },
+    "theme": {
+        "color": "#3399cc"
+    }
+};
+var rzp1 = new Razorpay(options);
+console.log("----------razorpay failed place--------------")
+rzp1.on('payment.failed', function (response){
+        alert(response.error.code);
+        alert(response.error.description);
+        alert(response.error.source);
+        alert(response.error.step);
+        alert(response.error.reason);
+        alert(response.error.metadata.order_id);
+        alert(response.error.metadata.payment_id);
+});
+document.getElementById('rzp-button1').onclick = function(e){
+    rzp1.open();
+    e.preventDefault();
+}
+  
+function verifyPayment(res, userid, orderid) {
+  console.log("-------verify payment--------")
+  console.log("----------response"+res,userid,orderid)
+    $.ajax({
+       
+      //passes details as url params
+      url: `/user/payment/success?user_id=${userid}&payment_id=${res.razorpay_payment_id}&order_id=${res.razorpay_order_id}
+      &signature=${res.razorpay_signature}&total=${total}`,
+      method: 'GET',
+      
+      success: (response) => {
+        if (response.status) {
+          console.log('test success')
+          const id=response.paymentid
+          location.href = `/user/success?id=${id}&cid=${coupon}`
+        }else {
+          console.log('test failed')
+          swal({
+            title: "Sorry, Payment Failed",
+            icon: 'warning',
+            dangerMode: true,
+          })
+          location.replace('/failed')
+          alert("error")
+        }
+      }
+    })
+  }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+</body>
+</html>

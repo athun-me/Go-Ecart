@@ -13,6 +13,7 @@ func init() {
 	config.DBconnect()
 	initializer.LoadEnv()
 	config.DBconnect()
+	R.LoadHTMLGlob("templates/*.html")
 }
 
 var R = gin.Default()
@@ -26,4 +27,3 @@ func main() {
 
 	R.Run()
 }
-

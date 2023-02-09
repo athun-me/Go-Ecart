@@ -362,6 +362,8 @@ func CheckCoupon(c *gin.Context) {
 	}
 }
 
+//>>>>>>>>>>>>> Applying coupon <<<<<<<<<<<<<<<<<<<<<<<<<
+
 func Applycoupon(c *gin.Context) {
 	id, err := strconv.Atoi(c.GetString("userid"))
 	if err != nil {
@@ -636,6 +638,7 @@ func OderDetails(c *gin.Context) {
 			Quantity:   UserCart.Quantity,
 			Status:     "Pending",
 		}
+		
 		result = db.Create(&OderDetails)
 		if result.Error != nil {
 			c.JSON(400, gin.H{

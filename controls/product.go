@@ -65,7 +65,7 @@ func ViewProducts(c *gin.Context) {
 	var products datas
 
 	db := config.DBconnect()
-	query := "SELECT products.productname, products.description, products.stock, products.price, brands.brandname FROM products LEFT JOIN brands ON products.brandid=brands.id  GROUP BY products.productid, brands.brandname"
+	query := "SELECT products.productname, products.description, products.stock, products.price, brands.brandname FROM products LEFT JOIN brands ON products.brand_id=brands.id  GROUP BY products.productid, brands.brandname"
 
 	if limit != 0 || offset != 0 {
 		if limit == 0 {
@@ -76,7 +76,6 @@ func ViewProducts(c *gin.Context) {
 			query = fmt.Sprintf("%s LIMIT %d OFFSET %d", query, limit, offset)
 		}
 	}
-	fmt.Println(query)
 	result := db.Raw(query).Scan(&products)
 	if result.Error != nil {
 		c.JSON(404, gin.H{

@@ -12,124 +12,25 @@ import (
 	"github.com/razorpay/razorpay-go"
 )
 
-// //>>>>>>>>>>>>>>>> Payment <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-// func Payment(c *gin.Context) {
-// 	//fetching user id from token
-// 	id, err := strconv.Atoi(c.GetString("userid"))
-// 	if err != nil {
-// 		c.JSON(400, gin.H{
-// 			"Error": "Error in string conversion",
-// 		})
-// 	}
-// 	type data struct {
-// 		Method string
-// 	}
-// 	var bindData data
-// 	var cartDate models.Cart
+func DeleteCartItems(c *gin.Context) {
+	id, err := strconv.Atoi(c.GetString("userid"))
+	if err != nil {
+		c.JSON(400, gin.H{
+			"Error": "Error in string conversion",
+		})
+	}
+	// var cartData models.Cart
+	db := config.DBconnect()
+	// result := db.Where("userid = ?", id).Delete(&cartData)
+	result := db.Exec("delete from carts where userid = ?", id)
 
-// 	//binding the data from posman
-// 	if c.Bind(&bindData) != nil {
-// 		c.JSON(400, gin.H{
-// 			"Error": "Could not bind the JSON data",
-// 		})
-// 		return
-// 	}
-
-// 	db := config.DBconnect()
-
-// 	//fetching the data from the table carts by id
-// 	result := db.First(&cartDate, "userid = ?", id)
-// 	if result.Error != nil {
-// 		c.JSON(400, gin.H{
-// 			"Error": result.Error.Error(),
-// 		})
-// 		return
-// 	}
-// 	//fetching the total amount from the table carts
-// 	var total_amount float64
-// 	result = db.Table("carts").Where("userid = ?", id).Select("SUM(totalprice)").Scan(&total_amount)
-// 	if result.Error != nil {
-// 		c.JSON(400, gin.H{
-// 			"Error": result.Error.Error(),
-// 		})
-// 		return
-// 	}
-
-// 	if bindData.Method == "COD" {
-// 		if result.Error != nil {
-// 			c.JSON(400, gin.H{
-// 				"Error": result.Error.Error(),
-// 			})
-// 			return
-// 		}
-
-// 		paymentData := models.Payment{
-// 			PaymentMethod: bindData.Method,
-// 			Totalamount:   uint(total_amount),
-// 			User_id:       uint(id),
-// 		}
-
-// 		result = db.Create(&paymentData)
-// 		if result.Error != nil {
-// 			c.JSON(400, gin.H{
-// 				"Error": result.Error.Error(),
-// 			})
-// 			return
-// 		}
-// 		c.JSON(200, gin.H{
-// 			"Message": "Payment Method COD",
-// 			"Status":  "Completed",
-// 		})
-
-// 	} else if bindData.Method == "UPI" {
-// 		//razor pay code
-// 		client := razorpay.NewClient("rzp_test_mCL1zwPhJbeuND", "qUeHjny0jl14sphKqOFpyq9M")
-
-// 		data := map[string]interface{}{
-// 			"amount":   cartDate.Totalprice,
-// 			"currency": "INR",
-// 			"receipt":  "some_receipt_id",
-// 		}
-// 		body, err := client.Order.Create(data, nil)
-
-// 		if err != nil {
-// 			c.JSON(500, gin.H{
-// 				"Error": err.Error(),
-// 			})
-// 			return
-// 		} else {
-// 			paymentData := models.Payment{
-// 				PaymentMethod: bindData.Method,
-// 				Totalamount:   uint(total_amount),
-// 				User_id:       uint(id),
-// 			}
-
-// 			result = db.Create(&paymentData)
-// 			if result.Error != nil {
-// 				c.JSON(400, gin.H{
-// 					"Error": result.Error.Error(),
-// 				})
-// 				return
-// 			}
-// 			orderID := body["id"].(string)
-// 			amount := body["amount"].(float64)
-// 			c.JSON(200, gin.H{
-// 				"Order ID": orderID,
-// 				"Amount":   amount,
-// 				"Message":  "Payment Method UPI",
-// 				"Status":   "Completed",
-// 			})
-// 		}
-// 	} else {
-// 		c.JSON(400, gin.H{
-// 			"Error": "Payment field",
-// 		})
-// 		return
-// 	}
-// 	OderDetails(c)
-// }
-
-//>>>>>>>>> Cash on delivery <<<<<<<<<<<<<<<<<<<<<<<<<<
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"Error": result.Error.Error(),
+		})
+		return
+	}
+}
 
 func CashOnDelivery(c *gin.Context) {
 	//fetching user id from token
@@ -164,6 +65,7 @@ func CashOnDelivery(c *gin.Context) {
 	paymentData := models.Payment{
 		PaymentMethod: "COD",
 		Totalamount:   uint(total_amount),
+		Status: "pending",
 		User_id:       uint(id),
 	}
 	result = db.Create(&paymentData)
@@ -177,10 +79,13 @@ func CashOnDelivery(c *gin.Context) {
 		"Message": "Payment Method COD",
 		"Status":  "Completed",
 	})
+	fmt.Println("this is the user id :", id)
+	OderDetails(c)
+	DeleteCartItems(c)
+
 }
 
 //>>>>>>>>>>>>>> Razorpay <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
 func Razorpay(c *gin.Context) {
 	fmt.Println("------------------the first line------------------")
 	id, err := strconv.Atoi(c.GetString("userid"))
@@ -200,7 +105,7 @@ func Razorpay(c *gin.Context) {
 		return
 	}
 	var amount uint
-	result = db.Raw("SELECT SUM(totalprice) FROM carts WHERE id = ?", id).Scan(&amount)
+	result = db.Table("carts").Where("userid = ?", id).Select("SUM(totalprice)").Scan(&amount)
 	fmt.Println("this is the total amount : ", amount)
 	if result.Error != nil {
 		c.JSON(400, gin.H{
@@ -230,7 +135,7 @@ func Razorpay(c *gin.Context) {
 		"email":       userdata.Email,
 		"phonenumber": userdata.PhoneNumber,
 	})
-	
+
 }
 
 func RazorpaySuccess(c *gin.Context) {
@@ -264,8 +169,8 @@ func RazorpaySuccess(c *gin.Context) {
 		User_id:       uint(id),
 		PaymentMethod: method,
 		Status:        status,
-		Razorpayid:    paymentid,
-		Totalamount:   uint(totalprice),
+		// Razorpayid:    paymentid,
+		Totalamount: uint(totalprice),
 	}
 	result1 := db.Create(&paymentdata)
 	if result1.Error != nil {
@@ -280,6 +185,7 @@ func RazorpaySuccess(c *gin.Context) {
 		"status":    true,
 		"paymentid": pid,
 	})
+	DeleteCartItems(c)
 }
 
 func Success(c *gin.Context) {

@@ -11,8 +11,8 @@ type Payment struct {
 	PaymentMethod string `jSON:"payment_method" gorm:"not null"`
 	Totalamount   uint   `jSON:"total_amount" gorm:"not null"`
 	Status        string `jSON:"Status" gorm:"not null"`
-	RazorPay      RazorPay  `gorm:"ForeignKey:razorpayid"`
-	Razorpayid    string    `JSON:"razorpayid" gorm:"defualt:null"`
+	// RazorPay      RazorPay  `gorm:"ForeignKey:razorpayid"`
+	// Razorpayid    string    `JSON:"razorpayid" gorm:"defualt:null"`
 }
 
 type OderDetails struct {

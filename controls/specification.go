@@ -125,7 +125,8 @@ func AddToCart(c *gin.Context) {
 
 	//fetching the table carts for checking the product_id is exist
 	db.Model(&cartdata).Where("product_id = ?", bindData.Product_id).Count(&count)
-	if count > 0 && id == int(cartdata.Userid) {
+	fmt.Println(count)
+	if count >= 0 && id == int(cartdata.Userid) {
 		var sum uint
 
 		//fetching the quantity form carts
@@ -638,7 +639,7 @@ func OderDetails(c *gin.Context) {
 			Quantity:   UserCart.Quantity,
 			Status:     "Pending",
 		}
-		
+
 		result = db.Create(&OderDetails)
 		if result.Error != nil {
 			c.JSON(400, gin.H{

@@ -99,7 +99,7 @@ func AddToCart(c *gin.Context) {
 	var productdata models.Product
 	if c.Bind(&bindData) != nil {
 		c.JSON(400, gin.H{
-			"Error": "Could not bind the JSON data",
+			"Bad Request": "Could not bind the JSON data",
 		})
 		return
 	}
@@ -124,13 +124,13 @@ func AddToCart(c *gin.Context) {
 	}
 
 	//fetching the table carts for checking the product_id is exist
-	db.Model(&cartdata).Where("product_id = ?", bindData.Product_id).Count(&count)
-	fmt.Println(count)
-	if count >= 0 && id == int(cartdata.Userid) {
+	db.Find(&cartdata, "userid = ?", id).Count(&count)
+
+	if count > 0 {
 		var sum uint
 
 		//fetching the quantity form carts
-		db.Table("carts").Where("product_id = ?", bindData.Product_id).Select("SUM(quantity)").Row().Scan(&sum)
+		db.Table("carts").Where("product_id = ? AND userid = ? ", bindData.Product_id, id).Select("SUM(quantity)").Row().Scan(&sum)
 		totalQuantity := sum + bindData.Quantity
 
 		//updating the quatity to the carts
@@ -140,6 +140,7 @@ func AddToCart(c *gin.Context) {
 		})
 		return
 	}
+
 	totalprice := productdata.Price * bindData.Quantity
 	cartitems := models.Cart{
 		Product_id: bindData.Product_id,

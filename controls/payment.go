@@ -18,6 +18,7 @@ func DeleteCartItems(c *gin.Context) {
 		c.JSON(400, gin.H{
 			"Error": "Error in string conversion",
 		})
+		return
 	}
 	// var cartData models.Cart
 	db := config.DBconnect()

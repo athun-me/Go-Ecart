@@ -1,4 +1,4 @@
-package midilware
+package middlereware
 
 import (
 	"fmt"

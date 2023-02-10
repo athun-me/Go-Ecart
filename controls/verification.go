@@ -52,7 +52,6 @@ func sendMail(email string, otp string) {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println("Email Sent Successfully!")
 }
 
 func getRandNum() (string, error) {
@@ -97,72 +96,58 @@ func OtpValidation(c *gin.Context) {
 	})
 }
 
-type Temp_Data struct {
-	Email    string
-	Otp      string
-	Password string
-}
-
-func ForgotPassword(c *gin.Context) {
-	var data Temp_Data
-	var userData models.User
-
+//Generating otp for forgot password
+func GenerateOtpForForgotPassword(c *gin.Context) {
+	type UserEnterDate struct {
+		Email string
+	}
+	var data UserEnterDate
 	if c.Bind(&data) != nil {
 		c.JSON(400, gin.H{
-			"error": "Data binding error",
+			"Error": "Error when the data binding",
 		})
 		return
 	}
-
 	otp := VerifyOTP(data.Email)
+
 	db := config.DBconnect()
-	result := db.First(&userData, "email LIKE ?", data.Email)
+	var userData models.User
+
+	result := db.Model(userData).Where("email = ?", data.Email).Update("otp", otp)
 	if result.Error != nil {
 		c.JSON(409, gin.H{
 			"Error": "User not exist",
 		})
 		return
-	} else {
-		db.Model(&userData).Where("email LIKE ?", data.Email).Update("otp", otp)
-		c.JSON(202, gin.H{
-			"message": "Go to /forgotpassword",
-		})
 	}
+	c.JSON(200, gin.H{
+		"Message": "otp send go to /user/changepassword",
+	})
 }
 
-func ForgotPasswordOtpValidation(c *gin.Context) {
-	var userEnterData Temp_Data
-	var userData models.User
-	if c.Bind(&userEnterData) != nil {
-		c.JSON(400, gin.H{
-			"error": "Data binding error",
-		})
-		return
-	}
-	db := config.DBconnect()
-	result := db.First(&userData, "otp LIKE ? AND email LIKE ?", userEnterData.Otp, userEnterData.Email)
-	if result.Error != nil {
-		c.JSON(404, gin.H{
-			"Error": result.Error.Error(),
-		})
-	} else {
-		c.JSON(202, gin.H{
-			"message": "Go to /changepassword",
-		})
-	}
-}
-
+//Reseting the password 
 func ChangePassword(c *gin.Context) {
-	var userEnterData Temp_Data
+	type userEnterData struct {
+		Email           string
+		Otp             string
+		Password        string
+		ConfirmPassword string
+	}
+	var data userEnterData
 	var userData models.User
-	if c.Bind(&userEnterData) != nil {
+	if c.Bind(&data) != nil {
 		c.JSON(400, gin.H{
-			"error": "Data binding error",
+			"Error": "Error when the data binding",
 		})
 		return
 	}
-
-	hash, err := bcrypt.GenerateFromPassword([]byte(userEnterData.Password), 10)
+	if data.Password != data.ConfirmPassword {
+		c.JSON(400, gin.H{
+			"Error": "Password not match",
+		})
+		return
+	}
+	hash, err := bcrypt.GenerateFromPassword([]byte(data.Password), 10)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"Status": "False",
@@ -171,17 +156,27 @@ func ChangePassword(c *gin.Context) {
 		return
 	}
 	db := config.DBconnect()
-	fmt.Println("This is the password", hash)
-	result := db.First(&userData, "email LIKE ?", userEnterData.Email)
+	result := db.Find(&userData, "email = ?", data.Email)
 	if result.Error != nil {
 		c.JSON(409, gin.H{
 			"Error": "User not exist",
 		})
 		return
-	} else {
-		db.Model(&userData).Where("email LIKE ?", userEnterData.Email).Update("password", hash)
-		c.JSON(202, gin.H{
-			"message": "Successfully updated password",
-		})
 	}
+	if data.Otp != userData.Otp {
+		c.JSON(400, gin.H{
+			"Error": "Invalide otp",
+		})
+		return
+	}
+	result = db.Model(&userData).Where("email = ?", data.Email).Update("password", hash)
+	if result.Error != nil {
+		c.JSON(409, gin.H{
+			"Error": "User not exist",
+		})
+		return
+	}
+	c.JSON(200, gin.H{
+		"Message": "Password Change successfully",
+	})
 }

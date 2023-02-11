@@ -1,7 +1,11 @@
 package controls
 
 import (
+	"bytes"
 	"fmt"
+	"text/template"
+
+	"os/exec"
 
 	"path/filepath"
 	"strconv"
@@ -731,4 +735,63 @@ func ReturnOder(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"Massage": "Product Return",
 	})
+}
+
+//>>>>>>>>> Invoice download <<<<<<<<<<<<<<<<<<
+type Invoice struct {
+	Name          string
+	Email         string
+	PaymentMethod string
+	Totalamount   int64
+	Items         []Item
+}
+
+type Item struct {
+	Description string
+	Amount      float64
+}
+
+const invoiceTemplate = `
+Invoice for {{.Name}} <br>
+Invoice Date: {{.Email}}
+
+{{range .Items}}
+Description: {{.Description}}
+Amount: {{.Amount}}
+{{end}}
+`
+
+func InvoiceF(c *gin.Context) {
+	db := config.DBconnect()
+	var user models.User
+	db.Find(&user)
+
+	invoice := Invoice{
+		Name:  user.Firstname,
+		Email: user.Email,
+		// Items: []Item{
+		// 	{Description: "Item 1", Amount: 100.0},
+		// },
+	}
+
+	tmpl, err := template.New("invoice").Parse(invoiceTemplate)
+	if err != nil {
+		panic(err)
+	}
+
+	var buf bytes.Buffer
+	err = tmpl.Execute(&buf, invoice)
+	if err != nil {
+		panic(err)
+	}
+
+	cmd := exec.Command("wkhtmltopdf", "-", "invoice.pdf")
+	cmd.Stdin = &buf
+	err = cmd.Run()
+	if err != nil {
+		panic(err)
+	}
+
+	defer buf.Reset()
+	c.HTML(200, "invoice.html", gin.H{})
 }

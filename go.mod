@@ -10,12 +10,14 @@ require (
 	gorm.io/gorm v1.24.3
 )
 
-require github.com/golang-jwt/jwt v3.2.2+incompatible
+require (
+	github.com/golang-jwt/jwt v3.2.2+incompatible
+	github.com/razorpay/razorpay-go v0.0.0-20220720130739-c296173f2d92
+)
 
 require (
-	github.com/aws/aws-sdk-go v1.44.193 // indirect
-	github.com/jmespath/go-jmespath v0.4.0 // indirect
-	github.com/razorpay/razorpay-go v0.0.0-20220720130739-c296173f2d92 // indirect
+	github.com/phpdave11/gofpdi v1.0.14-0.20211212211723-1f10f9844311 // indirect
+	github.com/pkg/errors v0.8.1 // indirect
 )
 
 require (
@@ -37,6 +39,7 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421 // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.6 // indirect
+	github.com/signintech/gopdf v0.16.1
 	github.com/ugorji/go/codec v1.2.7 // indirect
 	golang.org/x/net v0.5.0 // indirect
 	golang.org/x/sys v0.4.0 // indirect

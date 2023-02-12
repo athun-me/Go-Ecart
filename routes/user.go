@@ -58,6 +58,6 @@ func UserRouts(c *gin.Engine) {
 		User.GET("/payment/success", middlereware.UserAuth, controls.RazorpaySuccess)
 		User.GET("/success", middlereware.UserAuth, controls.Success)
 
-		User.GET("/invoice", controls.InvoiceF)
+		User.GET("/invoice",middlereware.UserAuth, controls.InvoiceF)
 	}
 }

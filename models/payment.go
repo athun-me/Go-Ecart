@@ -11,6 +11,7 @@ type Payment struct {
 	PaymentMethod string `jSON:"payment_method" gorm:"not null"`
 	Totalamount   uint   `jSON:"total_amount" gorm:"not null"`
 	Status        string `jSON:"Status" gorm:"not null"`
+	Date          time.Time
 	// RazorPay      RazorPay  `gorm:"ForeignKey:razorpayid"`
 	// Razorpayid    string    `JSON:"razorpayid" gorm:"defualt:null"`
 }

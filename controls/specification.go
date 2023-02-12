@@ -722,6 +722,7 @@ func ReturnOder(c *gin.Context) {
 		c.JSON(400, gin.H{
 			"Error": "Error in string conversion",
 		})
+		return
 	}
 	var oder models.OderDetails
 	db := config.DBconnect()
@@ -743,6 +744,7 @@ type Invoice struct {
 	Email         string
 	PaymentMethod string
 	Totalamount   int64
+	Date          time.Time
 	Items         []Item
 }
 
@@ -753,25 +755,56 @@ type Item struct {
 
 const invoiceTemplate = `
 Invoice for {{.Name}} <br>
-Invoice Date: {{.Email}}
-
-{{range .Items}}
-Description: {{.Description}}
-Amount: {{.Amount}}
-{{end}}
+Email: {{.Email}}<br>
+Date : {{.Date}}
+Payment method : {{.PaymentMethod}}<br>
+Total Amount : {{.Totalamount}}<br>
+{{range .Items}}<br>
+Description: {{.Description}}<br>
+Amount: {{.Amount}}<br>
+{{end}}<br>
 `
 
 func InvoiceF(c *gin.Context) {
+	id, err := strconv.Atoi(c.GetString("userid"))
+	fmt.Println("This is the user id : ", id)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"Error": "Error in string conversion",
+		})
+		return
+	}
 	db := config.DBconnect()
 	var user models.User
-	db.Find(&user)
+	var Payment models.Payment
+
+	result := db.Find(&user).Where("id = ? ", id)
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"Error": result.Error.Error(),
+		})
+		return
+	}
+	result = db.Find(&Payment).Where("user_id = ?", id)
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"Error": result.Error.Error(),
+		})
+		return
+	}
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"Error": result.Error.Error(),
+		})
+		return
+	}
 
 	invoice := Invoice{
-		Name:  user.Firstname,
-		Email: user.Email,
-		// Items: []Item{
-		// 	{Description: "Item 1", Amount: 100.0},
-		// },
+		Name:          user.Firstname,
+		Date:          Payment.Date,
+		Email:         user.Email,
+		PaymentMethod: Payment.PaymentMethod,
+		Totalamount:   int64(Payment.Totalamount),
 	}
 
 	tmpl, err := template.New("invoice").Parse(invoiceTemplate)

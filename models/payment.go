@@ -32,6 +32,19 @@ type OderDetails struct {
 	UpdatedAt  time.Time
 }
 
+type Oder_item struct {
+	Oder_item_id   uint `JSON:"id" gorm:"primarykey"`
+	Product_id     uint
+	Product        Product `gorm:"ForeignKey:Product_id"`
+	User_id        uint
+	User           User `gorm:"ForeignKey:User_id"`
+	OderDetails_id uint
+	OderDetails    OderDetails `gorm:"ForeignKey:OderDetails_id"`
+	Quantity       uint
+	Price          uint
+	Total_price    uint
+}
+
 type Coupon struct {
 	ID            int
 	CouponCode    string

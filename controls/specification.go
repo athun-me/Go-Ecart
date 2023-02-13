@@ -99,6 +99,88 @@ func AddToCart(c *gin.Context) {
 		Quantity   uint
 	}
 	var bindData data
+	var cartData models.Cart
+	var productData models.Product
+
+	if c.Bind(&bindData) != nil {
+		c.JSON(400, gin.H{
+			"Bad Request": "Could not bind the JSON data",
+		})
+		return
+	}
+	id, err := strconv.Atoi(c.GetString("userid"))
+	if err != nil {
+		c.JSON(400, gin.H{
+			"Error": "Error in string conversion",
+		})
+		return
+	}
+	db := config.DBconnect()
+
+	result := db.First(&productData, bindData.Product_id)
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"Message": "Product not exist",
+		})
+		return
+	}
+
+	if bindData.Quantity > productData.Stock {
+		c.JSON(404, gin.H{
+			"Message": "Out of Stock",
+		})
+		return
+	}
+
+	result = db.First(&cartData, "userid = ?", id)
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"Message": "cart not find",
+		})
+		return
+	}
+
+	var sum uint
+
+	err = db.Table("carts").Where("product_id = ? AND userid = ? ", bindData.Product_id, id).Select("SUM(quantity)").Row().Scan(&sum)
+	if err != nil {
+		totalprice := productData.Price * bindData.Quantity
+		cartitems := models.Cart{
+			Product_id: bindData.Product_id,
+			Quantity:   bindData.Quantity,
+			Price:      productData.Price,
+			Totalprice: totalprice,
+			Userid:     uint(id),
+		}
+		result := db.Create(&cartitems)
+		if result.Error != nil {
+			c.JSON(400, gin.H{
+				"Error": result.Error.Error(),
+			})
+			return
+		}
+		c.JSON(200, gin.H{
+			"Message": "Added to the Cart Successfull",
+		})
+		return
+	}
+	totalQuantity := sum + bindData.Quantity
+	fmt.Println("this is the sum : ", totalQuantity)
+	//updating the quatity to the carts
+	db.Model(&cartData).Where("product_id = ?", bindData.Product_id).Update("quantity", totalQuantity)
+	c.JSON(200, gin.H{
+		"Message": "Quantity added Successfully",
+	})
+	return
+
+}
+
+func AddToCart2(c *gin.Context) {
+	type data struct {
+		Product_id uint
+		Quantity   uint
+	}
+	var bindData data
 	var cartdata models.Cart
 	var productdata models.Product
 	if c.Bind(&bindData) != nil {
@@ -621,7 +703,7 @@ func OderDetails(c *gin.Context) {
 			"Error": result.Error.Error(),
 		})
 	}
-	result = db.Find(&UserPayment, "user_id = ?", userId)
+	result = db.Last(&UserPayment, "user_id = ?", userId)
 	if result.Error != nil {
 		c.JSON(400, gin.H{
 			"Error": result.Error.Error(),
@@ -636,6 +718,7 @@ func OderDetails(c *gin.Context) {
 	}
 
 	for _, UserCart := range UserCart {
+		fmt.Println("payment id is : ", UserPayment.Payment_id)
 		OderDetails := models.OderDetails{
 			Userid:     uint(userId),
 			Address_id: UserAddress.Addressid,
@@ -744,7 +827,7 @@ type Invoice struct {
 	Email         string
 	PaymentMethod string
 	Totalamount   int64
-	Date          time.Time
+	Date          string
 	Items         []Item
 }
 
@@ -754,9 +837,9 @@ type Item struct {
 }
 
 const invoiceTemplate = `
-Invoice for {{.Name}} <br>
+Name : {{.Name}} <br>
 Email: {{.Email}}<br>
-Date : {{.Date}}
+Date : {{.Date}} <br>
 Payment method : {{.PaymentMethod}}<br>
 Total Amount : {{.Totalamount}}<br>
 {{range .Items}}<br>
@@ -766,26 +849,27 @@ Amount: {{.Amount}}<br>
 `
 
 func InvoiceF(c *gin.Context) {
+
 	id, err := strconv.Atoi(c.GetString("userid"))
-	fmt.Println("This is the user id : ", id)
 	if err != nil {
 		c.JSON(400, gin.H{
 			"Error": "Error in string conversion",
 		})
 		return
 	}
+
 	db := config.DBconnect()
 	var user models.User
 	var Payment models.Payment
 
-	result := db.Find(&user).Where("id = ? ", id)
+	result := db.First(&user, id)
 	if result.Error != nil {
 		c.JSON(400, gin.H{
 			"Error": result.Error.Error(),
 		})
 		return
 	}
-	result = db.Find(&Payment).Where("user_id = ?", id)
+	result = db.Last(&Payment, "user_id = ?", id)
 	if result.Error != nil {
 		c.JSON(400, gin.H{
 			"Error": result.Error.Error(),
@@ -798,10 +882,11 @@ func InvoiceF(c *gin.Context) {
 		})
 		return
 	}
+	timeString := Payment.Date.Format("2006-01-02")
 
 	invoice := Invoice{
 		Name:          user.Firstname,
-		Date:          Payment.Date,
+		Date:          timeString,
 		Email:         user.Email,
 		PaymentMethod: Payment.PaymentMethod,
 		Totalamount:   int64(Payment.Totalamount),
@@ -809,22 +894,36 @@ func InvoiceF(c *gin.Context) {
 
 	tmpl, err := template.New("invoice").Parse(invoiceTemplate)
 	if err != nil {
-		panic(err)
+		c.JSON(400, gin.H{
+			"Error": err.Error(),
+		})
+		return
 	}
 
 	var buf bytes.Buffer
 	err = tmpl.Execute(&buf, invoice)
 	if err != nil {
-		panic(err)
+		c.JSON(400, gin.H{
+			"Error": err.Error(),
+		})
+		return
 	}
 
 	cmd := exec.Command("wkhtmltopdf", "-", "invoice.pdf")
 	cmd.Stdin = &buf
 	err = cmd.Run()
 	if err != nil {
-		panic(err)
+		c.JSON(400, gin.H{
+			"Error": err.Error(),
+		})
+		return
 	}
 
-	defer buf.Reset()
 	c.HTML(200, "invoice.html", gin.H{})
+}
+
+func Download(c *gin.Context) {
+	c.Header("Content-Disposition", "attachment; filename=invoice.pdf")
+	c.Header("Content-Type", "application/pdf")
+	c.File("invoice.pdf")
 }

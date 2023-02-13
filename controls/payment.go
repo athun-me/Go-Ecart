@@ -2,6 +2,7 @@ package controls
 
 import (
 	"fmt"
+	"time"
 
 	"os"
 	"strconv"
@@ -63,10 +64,12 @@ func CashOnDelivery(c *gin.Context) {
 		})
 		return
 	}
+	todaysDate := time.Now()
 	paymentData := models.Payment{
 		PaymentMethod: "COD",
 		Totalamount:   uint(total_amount),
-		Status: "pending",
+		Date:          todaysDate,
+		Status:        "pending",
 		User_id:       uint(id),
 	}
 	result = db.Create(&paymentData)
@@ -80,7 +83,6 @@ func CashOnDelivery(c *gin.Context) {
 		"Message": "Payment Method COD",
 		"Status":  "Completed",
 	})
-	fmt.Println("this is the user id :", id)
 	OderDetails(c)
 	DeleteCartItems(c)
 
@@ -162,6 +164,7 @@ func RazorpaySuccess(c *gin.Context) {
 		})
 		return
 	}
+	todyDate := time.Now()
 	method := "Razor Pay"
 	status := "pending"
 	totalprice, _ := strconv.Atoi(totalamount)
@@ -170,6 +173,7 @@ func RazorpaySuccess(c *gin.Context) {
 		User_id:       uint(id),
 		PaymentMethod: method,
 		Status:        status,
+		Date: todyDate,
 		// Razorpayid:    paymentid,
 		Totalamount: uint(totalprice),
 	}

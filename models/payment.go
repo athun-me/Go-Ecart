@@ -17,32 +17,34 @@ type Payment struct {
 }
 
 type OderDetails struct {
-	Oderid     uint `JSON:"oderid" gorm:"primarykey"`
-	Userid     uint
-	User       User `gorm:"ForeignKey:Userid"`
-	Address_id uint
-	Address    Address `gorm:"ForeignKey:Address_id"`
-	Paymentid  uint
-	Payment    Payment `gorm:"ForeignKey:Paymentid"`
-	Product_id uint
-	Product    Product `gorm:"ForeignKey:Product_id"`
-	Quantity   uint
-	Status     string `jSON:"Status" gorm:"not null"`
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
+	Oderid       uint `JSON:"oderid" gorm:"primarykey"`
+	Userid       uint
+	User         User `gorm:"ForeignKey:Userid"`
+	Address_id   uint
+	Address      Address `gorm:"ForeignKey:Address_id"`
+	Paymentid    uint
+	Payment      Payment `gorm:"ForeignKey:Paymentid"`
+	Oder_itemid uint
+	Product_id   uint
+	Product      Product `gorm:"ForeignKey:Product_id"`
+	Quantity     uint
+	Status       string `jSON:"Status" gorm:"not null"`
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }
 
 type Oder_item struct {
-	Oder_item_id   uint `JSON:"id" gorm:"primarykey"`
-	Product_id     uint
-	Product        Product `gorm:"ForeignKey:Product_id"`
-	User_id        uint
-	User           User `gorm:"ForeignKey:User_id"`
-	OderDetails_id uint
-	OderDetails    OderDetails `gorm:"ForeignKey:OderDetails_id"`
-	Quantity       uint
-	Price          uint
-	Total_price    uint
+	Order_id    uint    `JSON:"Order_id" gorm:"primarykey"`
+	User        User    `gorm:"ForeignKey:Useridno"`
+	Useridno    uint    `json:"useridno"  gorm:"not null" `
+	Totalamount uint    `json:"totalamount"  gorm:"not null" `
+	Payment     Payment `gorm:"ForeignKey:Paymentid"`
+	Paymentid   uint    `json:"paymentid"`
+	Orderstatus string  `json:"orderstatus" `
+	Address     Address `gorm:"ForeignKey:Addid"`
+	Addid       uint    `json:"addid"  `
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 type Coupon struct {

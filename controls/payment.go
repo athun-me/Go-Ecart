@@ -79,10 +79,37 @@ func CashOnDelivery(c *gin.Context) {
 		})
 		return
 	}
+
+	var addressData models.Address
+	result = db.First(&addressData, "userid = ?", id)
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"Error": result.Error.Error(),
+		})
+		return
+	}
+
+	oderData := models.Oder_item{
+		Useridno:    uint(id),
+		Totalamount: uint(total_amount),
+		Paymentid:   paymentData.Payment_id,
+		Addid:       addressData.Addressid,
+	}
+
+	result = db.Create(&oderData)
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"Error": result.Error.Error(),
+		})
+		return
+	}
+
+	
 	c.JSON(200, gin.H{
 		"Message": "Payment Method COD",
-		"Status":  "Completed",
+		"Status":  "True",
 	})
+	
 	OderDetails(c)
 	DeleteCartItems(c)
 
@@ -173,7 +200,7 @@ func RazorpaySuccess(c *gin.Context) {
 		User_id:       uint(id),
 		PaymentMethod: method,
 		Status:        status,
-		Date: todyDate,
+		Date:          todyDate,
 		// Razorpayid:    paymentid,
 		Totalamount: uint(totalprice),
 	}

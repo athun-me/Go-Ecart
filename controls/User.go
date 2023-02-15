@@ -44,20 +44,22 @@ func UserSignUP(c *gin.Context) {
 		return
 	}
 
-	otp := VerifyOTP(Data.Email)
-
+	
 	db := config.DBconnect()
 	result := db.First(&temp_user, "email LIKE ?", Data.Email)
-
+	
 	if result.Error != nil {
 		user := models.User{
-
+			
 			Firstname:   Data.Firstname,
 			Lastname:    Data.Lastname,
 			Email:       Data.Email,
 			Password:    string(hash),
 			PhoneNumber: Data.PhoneNumber,
 		}
+		
+		
+		otp := VerifyOTP(Data.Email)
 		result2 := db.Create(&user)
 		if result2.Error != nil {
 			c.JSON(500, gin.H{

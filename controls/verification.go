@@ -3,6 +3,7 @@ package controls
 import (
 	"crypto/rand"
 	"fmt"
+	"os"
 
 	"net/http"
 	"net/smtp"
@@ -28,9 +29,10 @@ func VerifyOTP(email string) string {
 
 func sendMail(email string, otp string) {
 
+	fmt.Println("Email : ", email, " otp :", otp)
 	// Sender data.
-	from := "golangathunbrototype@gmail.com"
-	password := "cpgmhxygkwpirrqi"
+	from := os.Getenv("EMAIL")
+	password := os.Getenv("PASSWORD")
 
 	// Receiver email address.
 	to := []string{
@@ -125,7 +127,7 @@ func GenerateOtpForForgotPassword(c *gin.Context) {
 	})
 }
 
-//Reseting the password 
+//Reseting the password
 func ChangePassword(c *gin.Context) {
 	type userEnterData struct {
 		Email           string

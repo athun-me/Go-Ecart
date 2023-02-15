@@ -101,12 +101,15 @@ func AddToCart(c *gin.Context) {
 	var bindData data
 	var productData models.Product
 
+	//binding the data from the input
 	if c.Bind(&bindData) != nil {
 		c.JSON(400, gin.H{
 			"Bad Request": "Could not bind the JSON data",
 		})
 		return
 	}
+
+	//fetching the user id from the tocken
 	id, err := strconv.Atoi(c.GetString("userid"))
 	if err != nil {
 		c.JSON(400, gin.H{
@@ -114,6 +117,7 @@ func AddToCart(c *gin.Context) {
 		})
 		return
 	}
+
 	db := config.DBconnect()
 
 	//checking the product is exist or not
@@ -136,7 +140,7 @@ func AddToCart(c *gin.Context) {
 	var sum uint
 	var Price uint
 
-	//checking the produt_id and user_id is in the carts table
+	//checking the produt_id and user_id  in the carts table
 	err = db.Table("carts").Where("product_id = ? AND userid = ? ", bindData.Product_id, id).Select("quantity", "totalprice").Row().Scan(&sum, &Price)
 	if err != nil {
 		totalprice := productData.Price * bindData.Quantity
@@ -147,6 +151,8 @@ func AddToCart(c *gin.Context) {
 			Totalprice: totalprice,
 			Userid:     uint(id),
 		}
+
+		//Creating the table carts
 		result := db.Create(&cartitems)
 		if result.Error != nil {
 			c.JSON(400, gin.H{
@@ -154,6 +160,7 @@ func AddToCart(c *gin.Context) {
 			})
 			return
 		}
+
 		c.JSON(200, gin.H{
 			"Message": "Added to the Cart Successfull",
 		})
@@ -162,21 +169,20 @@ func AddToCart(c *gin.Context) {
 
 	//calculatin the tottal quantity and total Price
 	totalQuantity := sum + bindData.Quantity
-	totalPrice := Price * totalQuantity
+	totalPrice := productData.Price * totalQuantity
 
 	//updating the quatity and the total price  to the carts
-	result = db.Model(&models.Cart{}).Where("product_id = ?", bindData.Product_id).Updates(map[string]interface{}{"quantity": totalQuantity, "totalprice": totalPrice})
+	result = db.Model(&models.Cart{}).Where("product_id = ? AND userid = ? ", bindData.Product_id, id).Updates(map[string]interface{}{"quantity": totalQuantity, "totalprice": totalPrice})
 	if result.Error != nil {
 		c.JSON(400, gin.H{
 			"Error": result.Error.Error(),
 		})
 		return
 	}
+	
 	c.JSON(200, gin.H{
 		"Message": "Quantity added Successfully",
 	})
-	return
-
 }
 
 //View cart items using user id
@@ -731,7 +737,7 @@ func InvoiceF(c *gin.Context) {
 		return
 	}
 
-	//fetching the payment detail form table Payments using userid 
+	//fetching the payment detail form table Payments using userid
 	result = db.Last(&Payment, "user_id = ?", id)
 	if result.Error != nil {
 		c.JSON(400, gin.H{
@@ -740,7 +746,7 @@ func InvoiceF(c *gin.Context) {
 		return
 	}
 
-	//fetching the product data from table products using Oder_itemid from table Oder_item. 
+	//fetching the product data from table products using Oder_itemid from table Oder_item.
 	var products []models.Product
 	err = db.Joins("JOIN oder_details ON products.productid = oder_details.product_id").
 		Where("oder_details.oder_itemid = ?", oderData.Oder_itemid).Find(&products).Error
@@ -751,7 +757,7 @@ func InvoiceF(c *gin.Context) {
 		return
 	}
 
-	//To list the product details from products, product data assign to slice items 
+	//To list the product details from products, product data assign to slice items
 	items := make([]Item, len(products))
 	for i, data := range products {
 		items[i] = Item{
@@ -761,7 +767,7 @@ func InvoiceF(c *gin.Context) {
 		}
 	}
 
-	//spliting the date from time.time 
+	//spliting the date from time.time
 	timeString := Payment.Date.Format("2006-01-02")
 
 	//executing the template Invoice
@@ -818,7 +824,7 @@ func InvoiceF(c *gin.Context) {
 	c.HTML(200, "invoice.html", gin.H{})
 }
 
-//To download the pdf file 
+//To download the pdf file
 func Download(c *gin.Context) {
 	c.Header("Content-Disposition", "attachment; filename=invoice.pdf")
 	c.Header("Content-Type", "application/pdf")

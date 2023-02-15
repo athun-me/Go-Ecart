@@ -17,20 +17,20 @@ type Payment struct {
 }
 
 type OderDetails struct {
-	Oderid       uint `JSON:"oderid" gorm:"primarykey"`
-	Userid       uint
-	User         User `gorm:"ForeignKey:Userid"`
-	Address_id   uint
-	Address      Address `gorm:"ForeignKey:Address_id"`
-	Paymentid    uint
-	Payment      Payment `gorm:"ForeignKey:Paymentid"`
+	Oderid      uint `JSON:"oderid" gorm:"primarykey"`
+	Userid      uint
+	User        User `gorm:"ForeignKey:Userid"`
+	Address_id  uint
+	Address     Address `gorm:"ForeignKey:Address_id"`
+	Paymentid   uint
+	Payment     Payment `gorm:"ForeignKey:Paymentid"`
 	Oder_itemid uint
-	Product_id   uint
-	Product      Product `gorm:"ForeignKey:Product_id"`
-	Quantity     uint
-	Status       string `jSON:"Status" gorm:"not null"`
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	Product_id  uint
+	Product     Product `gorm:"ForeignKey:Product_id"`
+	Quantity    uint
+	Status      string `jSON:"Status" gorm:"not null"`
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 type Oder_item struct {
@@ -61,4 +61,13 @@ type RazorPay struct {
 	RazorPayOrderID string `JSON:"razorpayorderid"`
 	Signature       string `JSON:"signature"`
 	AmountPaid      string `JSON:"amountpaid"`
+}
+
+type Wallet struct {
+	Id          uint
+	Oder_item   Oder_item `gorm:"ForeignKey:OrderitemId"`
+	OrderitemId uint
+	User        User `gorm:"ForeignKey:User_id"`
+	User_id uint 
+	Amount float64 
 }

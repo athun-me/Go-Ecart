@@ -41,8 +41,8 @@ func UserRouts(c *gin.Engine) {
 
 		//Oder managements by user
 		User.GET("/showoder", middlereware.UserAuth, controls.ShowOder)
-		User.GET("/return", middlereware.UserAuth, controls.ReturnOder)
-		User.GET("/canceloder", middlereware.UserAuth, controls.CancelOder)
+		User.GET("/return", middlereware.UserAuth, controls.ReturnOrderByUser)
+		User.GET("/canceloder", middlereware.UserAuth, controls.CancelOrder)
 
 		//Coupon management
 		User.POST("/applycoupon", middlereware.UserAuth, controls.Applycoupon)

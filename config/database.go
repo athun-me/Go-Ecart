@@ -30,6 +30,7 @@ func DBconnect() *gorm.DB {
 	DB.AutoMigrate(&models.Catogery{})
 	DB.AutoMigrate(&models.RazorPay{})
 	DB.AutoMigrate(&models.Oder_item{})
+	DB.AutoMigrate(&models.Wallet{})
 
 	return DB
 

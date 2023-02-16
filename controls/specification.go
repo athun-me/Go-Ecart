@@ -12,10 +12,13 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/athunlal/config"
 	"github.com/athunlal/models"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/jung-kurt/gofpdf"
+	"github.com/tealeg/xlsx"
 )
 
 //Admin adding the product brand
@@ -179,7 +182,7 @@ func AddToCart(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	c.JSON(200, gin.H{
 		"Message": "Quantity added Successfully",
 	})
@@ -829,4 +832,133 @@ func Download(c *gin.Context) {
 	c.Header("Content-Disposition", "attachment; filename=invoice.pdf")
 	c.Header("Content-Type", "application/pdf")
 	c.File("invoice.pdf")
+}
+
+//<<<<<<<<<<<<< Sales Report >>>>>>>>>>>>>>>>>>>>>>>>
+func SalesReport(c *gin.Context) {
+
+	//fetching the dates from the URL
+	startDate := c.Query("startDate")
+	endDateStr := c.Query("endDate")
+
+	//converting the dates string to time.time
+	fromTime, err := time.Parse("2006-01-02", startDate)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": "Invalid start Date",
+		})
+		return
+	}
+	toTime, err := time.Parse("2006-01-02", endDateStr)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": "Invalid end Date",
+		})
+		return
+	}
+
+	//fetching the data from the table Order details where start date to end date
+	var orderDetail []models.OderDetails
+	// var reportData []Report
+	db := config.DBconnect()
+
+	result := db.Preload("Product").Preload("Payment").
+		Where("created_at BETWEEN ? AND ?", fromTime, toTime).
+		Find(&orderDetail)
+
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"Error": result.Error.Error(),
+		})
+		return
+	}
+
+	f := excelize.NewFile()
+
+	// Create a new sheet.
+	SheetName := "Sheet1"
+	index := f.NewSheet(SheetName)
+
+	// Set the value of headers
+	f.SetCellValue(SheetName, "A1", "Order Date")
+	f.SetCellValue(SheetName, "B1", "Order ID")
+	f.SetCellValue(SheetName, "C1", "Product name")
+	f.SetCellValue(SheetName, "D1", "Price")
+	f.SetCellValue(SheetName, "E1", "Total Amount")
+	f.SetCellValue(SheetName, "F1", "Payment method")
+	f.SetCellValue(SheetName, "G1", "Payment Status")
+
+	// Set the value of cell
+	for i, report := range orderDetail {
+		row := i + 2
+		f.SetCellValue(SheetName, fmt.Sprintf("A%d", row), report.CreatedAt.Format("01/02/2006"))
+		f.SetCellValue(SheetName, fmt.Sprintf("B%d", row), report.Oderid)
+		f.SetCellValue(SheetName, fmt.Sprintf("C%d", row), report.Product.Productname)
+		f.SetCellValue(SheetName, fmt.Sprintf("D%d", row), report.Product.Price)
+		f.SetCellValue(SheetName, fmt.Sprintf("E%d", row), report.Payment.Totalamount)
+		f.SetCellValue(SheetName, fmt.Sprintf("F%d", row), report.Payment.PaymentMethod)
+		f.SetCellValue(SheetName, fmt.Sprintf("G%d", row), report.Payment.Status)
+
+	}
+
+	// Set active sheet of the workbook.
+	f.SetActiveSheet(index)
+
+	// Save the Excel file with the name "test.xlsx".
+	if err := f.SaveAs("./public/SalesReport.xlsx"); err != nil {
+		fmt.Println(err)
+	}
+	CovertingExelToPdf(c)
+	c.HTML(200, "SalseReport.html", gin.H{})
+
+}
+
+func CovertingExelToPdf(c *gin.Context) {
+	// Open the Excel file
+	xlFile, err := xlsx.OpenFile("./public/SalesReport.xlsx")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	// Create a new PDF document
+	pdf := gofpdf.New("P", "mm", "A4", "")
+	pdf.AddPage()
+	pdf.SetFont("Arial", "", 14)
+
+	// Convertig each cell in the Excel file to a PDF cell
+	for _, sheet := range xlFile.Sheets {
+		for _, row := range sheet.Rows {
+			for _, cell := range row.Cells {
+				//if there is any empty cell values skiping that
+				if cell.Value == "" {
+					continue
+				}
+
+				pdf.Cell(40, 10, cell.Value)
+			}
+			pdf.Ln(-1)
+		}
+	}
+
+	// Save the PDF document
+	err = pdf.OutputFileAndClose("./public/SalesReport.pdf")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Println("PDF saved successfully.")
+}
+
+func DownloadExel(c *gin.Context) {
+	c.Header("Content-Disposition", "attachment; filename=SalesReport.xlsx")
+	c.Header("Content-Type", "application/xlsx")
+	c.File("./public/SalesReport.xlsx")
+}
+
+func Downloadpdf(c *gin.Context) {
+	c.Header("Content-Disposition", "attachment; filename=SalesReport.pdf")
+	c.Header("Content-Type", "application/pdf")
+	c.File("./public/SalesReport.pdf")
 }

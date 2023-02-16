@@ -29,15 +29,20 @@ func AdminRouts(c *gin.Engine) {
 		admin.PUT("/edituserprofile/:id", middlereware.AdminAuth, controls.EditUserProfileByadmin)
 		admin.PUT("/unblockeusers/:id", middlereware.AdminAuth, controls.AdminUnlockUser)
 		admin.PUT("/blockusers/:id", middlereware.AdminAuth, controls.AdminBlockUser)
-		
+
 		//product management
 		admin.POST("/addimage", middlereware.UserAuth, controls.AddImages)
 		admin.POST("/addproduct", middlereware.AdminAuth, controls.AddProduct)
-		
+
 		//coupon routes
 		admin.POST("/coupon", middlereware.AdminAuth, controls.AddCoupon)
 		admin.POST("/checkcoupon", middlereware.AdminAuth, controls.CheckCoupon)
-		
+
+		//Salse Report
+		admin.GET("/salesreport", middlereware.AdminAuth, controls.SalesReport)
+		admin.GET("/exel", middlereware.AdminAuth, controls.DownloadExel)
+		admin.GET("/salsereportpdf/download", middlereware.AdminAuth, controls.Downloadpdf)
+
 	}
 
 }

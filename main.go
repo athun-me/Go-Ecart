@@ -11,8 +11,7 @@ import (
 func init() {
 	initializer.LoadEnv()
 	config.DBconnect()
-	initializer.LoadEnv()
-	config.DBconnect()
+	
 	R.LoadHTMLGlob("templates/*.html")
 }
 

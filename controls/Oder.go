@@ -47,12 +47,12 @@ func OderDetails(c *gin.Context) {
 
 	for _, UserCart := range UserCart {
 		OderDetails := models.OderDetails{
-			Userid:      uint(userId),
+			Userid:     uint(userId),
 			Address_id:  UserAddress.Addressid,
-			Paymentid:   UserPayment.Payment_id,
+			Paymentid:  UserPayment.Payment_id,
 			Product_id:  UserCart.Product_id,
-			Status:      "pending",
-			Quantity:    UserCart.Quantity,
+			Status:     "pending",
+			Quantity:   UserCart.Quantity,
 			Oder_itemid: oder_item.Order_id,
 		}
 
@@ -110,16 +110,34 @@ func ShowOder(c *gin.Context) {
 
 //>>>>>>>>>>>>>>< Cancel Oder <<<<<<<<<<<<<<<<<<<<
 func CancelOrder(c *gin.Context) {
+
 	userid, err := strconv.Atoi(c.GetString("userid"))
 	if err != nil {
 		c.JSON(400, gin.H{
 			"Error": "Error in string conversion",
 		})
+		return
+	}
+
+	orderid, err := strconv.Atoi(c.Query("order_itemid"))
+	if err != nil {
+		c.JSON(400, gin.H{
+			"Error": "Error in string conversion",
+		})
+		return
 	}
 
 	var oder models.OderDetails
+	var order_item models.Oder_item
 	db := config.DBconnect()
-	result := db.Model(&oder).Where("userid = ?", userid).Update("status", "Canceled")
+	result := db.Model(&oder).Where("userid = ? AND oder_itemid = ?", userid, orderid).Update("status", "Canceled")
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"Error": result.Error.Error(),
+		})
+		return
+	}
+	result = db.Model(&order_item).Where("useridno = ? AND order_id =?", userid, orderid).Update("orderstatus", "Canceled")
 	if result.Error != nil {
 		c.JSON(400, gin.H{
 			"Error": result.Error.Error(),
@@ -152,6 +170,7 @@ func ReturnOrderByUser(c *gin.Context) {
 	var oder models.OderDetails
 	var oderItem models.Oder_item
 	db := config.DBconnect()
+
 	result := db.Model(&oder).Where("userid = ? AND oder_itemid = ?", userid, orderId).Update("status", "Return product")
 	if result.Error != nil {
 		c.JSON(400, gin.H{
@@ -175,5 +194,5 @@ func ReturnOrderByUser(c *gin.Context) {
 
 //>>>>>>>>>>>>> Return acsept <<<<<<<<<<<<<<<<<
 func ReturnAcsept(c *gin.Context) {
-	
+
 }

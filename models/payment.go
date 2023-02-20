@@ -7,7 +7,7 @@ import (
 type Payment struct {
 	Payment_id    uint `JSON:"payment_id" gorm:"primarykey"`
 	User          User `gorm:"ForeignKey:User_id"`
-	UserId        uint
+	User_id       uint
 	PaymentMethod string `jSON:"payment_method" gorm:"not null"`
 	Totalamount   uint   `jSON:"total_amount" gorm:"not null"`
 	Status        string `jSON:"Status" gorm:"not null"`

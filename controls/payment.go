@@ -69,7 +69,7 @@ func CashOnDelivery(c *gin.Context) {
 		Totalamount:   uint(total_amount),
 		Date:          todaysDate,
 		Status:        "pending",
-		UserId:        uint(id),
+		User_id:       uint(id),
 	}
 	result = db.Create(&paymentData)
 	if result.Error != nil {
@@ -150,7 +150,7 @@ func Razorpay(c *gin.Context) {
 	//Sending the payment details to Razorpay
 	client := razorpay.NewClient(os.Getenv("RAZORPAY_KEY_ID"), os.Getenv("RAZORPAY_SECRET"))
 	data := map[string]interface{}{
-		"amount":   amount,
+		"amount":   amount * 10,
 		"currency": "INR",
 		"receipt":  "some_receipt_id",
 	}
@@ -222,7 +222,7 @@ func RazorpaySuccess(c *gin.Context) {
 
 	//Creating payment table
 	paymentdata := models.Payment{
-		UserId:        uint(userID),
+		User_id:       uint(userID),
 		PaymentMethod: method,
 		Status:        status,
 		Date:          todyDate,

@@ -14,7 +14,6 @@ import (
 //>>>>>>>>>>>>>> Add products <<<<<<<<<<<<<<<<<<<<<<<<<<
 func AddProduct(c *gin.Context) {
 	var product models.Product
-
 	err := c.Bind(&product)
 	if err != nil {
 		c.JSON(400, gin.H{
@@ -25,7 +24,6 @@ func AddProduct(c *gin.Context) {
 	}
 
 	db := config.DBconnect()
-	
 	var count int64
 	result := db.Find(&product, "productname = ?", product.Productname).Count(&count)
 	if result.Error != nil {

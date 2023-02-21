@@ -39,10 +39,9 @@ func AdminRouts(c *gin.Engine) {
 		admin.POST("/checkcoupon", middlereware.AdminAuth, controls.CheckCoupon)
 
 		//Salse Report
-		admin.GET("/salesreport", middlereware.AdminAuth, controls.SalesReport)
-		admin.GET("/exel", middlereware.AdminAuth, controls.DownloadExel)
+		admin.GET("/order/salesreport", middlereware.AdminAuth, controls.SalesReport)
+		admin.GET("/order/salesreport/exel", middlereware.AdminAuth, controls.DownloadExel)
 		admin.GET("/salsereportpdf/download", middlereware.AdminAuth, controls.Downloadpdf)
-
 	}
 
 }

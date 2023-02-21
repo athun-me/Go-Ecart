@@ -714,7 +714,7 @@ func InvoiceF(c *gin.Context) {
 	}
 
 	//fetching the data from table Oder_details using userid and oder_idtemid, for fetching the oder_itemid
-	result = db.Last(&oderData).Where("useridno = ? AND oder_itemid = ?", id, Oder_item.Order_id)
+	result = db.Last(&oderData).Where("useridno = ? AND oder_itemid = ?", id, Oder_item.OrderId)
 	if result.Error != nil {
 		c.JSON(400, gin.H{
 			"Error": result.Error.Error(),
@@ -732,7 +732,7 @@ func InvoiceF(c *gin.Context) {
 	}
 
 	//fetching the user address using address id from table Oder_Details
-	result = db.First(&address, oderData.Address_id)
+	result = db.First(&address, oderData.AddressId)
 	if result.Error != nil {
 		c.JSON(400, gin.H{
 			"Error": result.Error.Error(),
@@ -752,7 +752,7 @@ func InvoiceF(c *gin.Context) {
 	//fetching the product data from table products using Oder_itemid from table Oder_item.
 	var products []models.Product
 	err = db.Joins("JOIN oder_details ON products.productid = oder_details.product_id").
-		Where("oder_details.oder_itemid = ?", oderData.Oder_itemid).Find(&products).Error
+		Where("oder_details.oder_itemid = ?", oderData.OderItemid).Find(&products).Error
 	if err != nil {
 		c.JSON(400, gin.H{
 			"Error": "somthing went wrong",
@@ -778,7 +778,7 @@ func InvoiceF(c *gin.Context) {
 		Name:          user.Firstname,
 		Date:          timeString,
 		Email:         user.Email,
-		OrderId:       oderData.Oder_itemid,
+		OrderId:       oderData.OderItemid,
 		PaymentMethod: Payment.PaymentMethod,
 		Totalamount:   int64(Payment.Totalamount),
 		Address: []Address{

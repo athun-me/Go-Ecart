@@ -65,7 +65,6 @@ func getRandNum() (string, error) {
 }
 
 //-------Otp validtioin------------->
-
 func OtpValidation(c *gin.Context) {
 	type User_otp struct {
 		Otp   string
@@ -86,7 +85,7 @@ func OtpValidation(c *gin.Context) {
 		c.JSON(404, gin.H{
 			"Error": result.Error.Error(),
 		})
-		db.Last(&userData).Delete(&userData)
+		// db.Last(&userData).Delete(&userData)
 		c.JSON(422, gin.H{
 			"Error":   "Wrong OTP Register Once agian",
 			"Message": "Goto /signup/otpvalidate",

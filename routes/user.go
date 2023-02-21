@@ -15,7 +15,6 @@ func UserRouts(c *gin.Engine) {
 		User.POST("/signup", controls.UserSignUP)
 		User.POST("/signup/otpvalidate", controls.OtpValidation)
 		User.GET("/logout", middlereware.UserAuth, controls.UserSignout)
-		User.GET("/validate", middlereware.UserAuth, controls.Validate)
 
 		//User profile routes
 		User.GET("/viewprofile", middlereware.UserAuth, controls.ShowUserDetails)
@@ -23,7 +22,7 @@ func UserRouts(c *gin.Engine) {
 		User.PUT("/editaddress/:id", middlereware.UserAuth, controls.EditUserAddress)
 		User.GET("/searchaddress/:id", middlereware.UserAuth, controls.ShowAddress)
 		User.POST("/userchangepassword", middlereware.UserAuth, controls.UserChangePassword)
-		User.PUT("/updatepassword", middlereware.UserAuth, controls.Updatepassword)
+		User.PUT("/userchangepassword/updatepassword", middlereware.UserAuth, controls.Updatepassword)
 		User.PUT("/editprofile", middlereware.UserAuth, controls.EditUserProfilebyUser)
 		User.GET("/wishlist/:id", middlereware.UserAuth, controls.Wishlist)
 
@@ -34,15 +33,15 @@ func UserRouts(c *gin.Engine) {
 
 		//User carts routes
 		User.GET("/viewcart", middlereware.UserAuth, controls.ViewCart)
-		User.POST("/addtocart", middlereware.UserAuth, controls.AddToCart)
+		User.POST("/profile/addtocart", middlereware.UserAuth, controls.AddToCart)
 		User.GET("/fileterbycatogery/:id", middlereware.UserAuth, controls.FilteringByCatogery)
-		User.GET("/checkout", middlereware.UserAuth, controls.CheckOut)
+		User.GET("/cart/checkout", middlereware.UserAuth, controls.CheckOut)
 		User.DELETE("/deletecart/:id", middlereware.UserAuth, controls.DeleteCart)
 
 		//Oder managements by user
 		User.GET("/showoder", middlereware.UserAuth, controls.ShowOder)
-		User.GET("/return", middlereware.UserAuth, controls.ReturnOrderByUser)
-		User.GET("/canceloder", middlereware.UserAuth, controls.CancelOrder)
+		User.GET("/order/showoder/return/", middlereware.UserAuth, controls.ReturnOrderByUser)
+		User.GET("/order/showoder/canceloder", middlereware.UserAuth, controls.CancelOrder)
 
 		//Coupon management
 		User.POST("/applycoupon", middlereware.UserAuth, controls.Applycoupon)
@@ -59,7 +58,7 @@ func UserRouts(c *gin.Engine) {
 		User.GET("/success", middlereware.UserAuth, controls.Success)
 
 		User.GET("/invoice", middlereware.UserAuth, controls.InvoiceF)
-		User.GET("/invoice/download",middlereware.UserAuth, controls.Download)
+		User.GET("/invoice/download", middlereware.UserAuth, controls.Download)
 
 	}
 }

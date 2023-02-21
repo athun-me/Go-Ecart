@@ -47,13 +47,13 @@ func OderDetails(c *gin.Context) {
 
 	for _, UserCart := range UserCart {
 		OderDetails := models.OderDetails{
-			Userid:      uint(userId),
-			Address_id:  UserAddress.Addressid,
-			Paymentid:   UserPayment.Payment_id,
-			Product_id:  UserCart.Product_id,
-			Status:      "pending",
-			Quantity:    UserCart.Quantity,
-			Oder_itemid: oder_item.Order_id,
+			Userid:     uint(userId),
+			AddressId:  UserAddress.Addressid,
+			Paymentid:  UserPayment.PaymentId,
+			Product_id: UserCart.Product_id,
+			Status:     "pending",
+			Quantity:   UserCart.Quantity,
+			OderItemid: oder_item.OrderId,
 		}
 
 		result = db.Create(&OderDetails)
@@ -175,5 +175,5 @@ func ReturnOrderByUser(c *gin.Context) {
 
 //>>>>>>>>>>>>> Return acsept <<<<<<<<<<<<<<<<<
 func ReturnAcsept(c *gin.Context) {
-	
+
 }

@@ -91,7 +91,7 @@ func CashOnDelivery(c *gin.Context) {
 	oderData := models.Oder_item{
 		Useridno:    uint(id),
 		Totalamount: uint(total_amount),
-		Paymentid:   paymentData.Payment_id,
+		Paymentid:   paymentData.PaymentId,
 		Addid:       addressData.Addressid,
 		Orderstatus: "pending",
 	}
@@ -136,21 +136,21 @@ func Razorpay(c *gin.Context) {
 		return
 	}
 
+	//fetching the tatal price from the table carts
 	var amount uint
+	row := db.Table("carts").Where("userid = ?", id).Select("SUM(totalprice)").Row()
+	err = row.Scan(&amount)
 
-	//fetching the sum of the total price from the tabel carts
-	result = db.Table("carts").Where("userid = ?", 2).Select("SUM(totalprice)").Scan(&amount)
-	if result.Error != nil {
+	if err != nil {
 		c.JSON(400, gin.H{
-			"Error": result.Error.Error(),
+			"Error": err.Error(),
 		})
-		return
 	}
 
 	//Sending the payment details to Razorpay
 	client := razorpay.NewClient(os.Getenv("RAZORPAY_KEY_ID"), os.Getenv("RAZORPAY_SECRET"))
 	data := map[string]interface{}{
-		"amount":   amount * 10,
+		"amount":   amount * 100,
 		"currency": "INR",
 		"receipt":  "some_receipt_id",
 	}
@@ -244,7 +244,7 @@ func RazorpaySuccess(c *gin.Context) {
 		})
 		return
 	}
-	pid := paymentdata.Payment_id
+	pid := paymentdata.PaymentId
 
 	oderData := models.Oder_item{
 		Useridno:    uint(userID),

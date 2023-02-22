@@ -255,6 +255,7 @@ func DeleteCart(c *gin.Context) {
 
 //Add image of the product by admin
 func AddImages(c *gin.Context) {
+	
 	imagepath, _ := c.FormFile("image")
 	extension := filepath.Ext(imagepath.Filename)
 	image := uuid.New().String() + extension

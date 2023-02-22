@@ -285,3 +285,113 @@ func Success(c *gin.Context) {
 	})
 
 }
+
+//Wallet payment
+func WalletPay(c *gin.Context) {
+	//fetching user id from token
+	id, err := strconv.Atoi(c.GetString("userid"))
+	if err != nil {
+		c.JSON(400, gin.H{
+			"Error": "Error in string conversion",
+		})
+	}
+
+	var cartData models.Cart
+	var wallet models.Wallet
+
+	db := config.DBconnect()
+
+	result := db.Where("user_id = ?", id).First(&wallet)
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"Error":    result.Error.Error(),
+			"Message ": "Wallet does not exist",
+		})
+		return
+	}
+
+	//fetching the data from the table carts by id
+	result = db.First(&cartData, "userid = ?", id)
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"Error": result.Error.Error(),
+		})
+		return
+	}
+
+	//fetching the total amount from the table carts
+	var totalAmount float64
+	result = db.Table("carts").Where("userid = ?", id).Select("SUM(totalprice)").Scan(&totalAmount)
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"Error": result.Error.Error(),
+		})
+		return
+	}
+
+	if wallet.Amount < totalAmount {
+		c.JSON(400, gin.H{
+			"Error": "Insufficient balance",
+		})
+		return
+	}
+
+	todaysDate := time.Now()
+	paymentData := models.Payment{
+		PaymentMethod: "Wallet",
+		Totalamount:   uint(totalAmount),
+		Date:          todaysDate,
+		Status:        "pending",
+		User_id:       uint(id),
+	}
+	result = db.Create(&paymentData)
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"Error": result.Error.Error(),
+		})
+		return
+	}
+
+	var addressData models.Address
+	result = db.First(&addressData, "userid = ?", id)
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"Error":   result.Error.Error(),
+			"Message": "Address not added",
+		})
+		return
+	}
+
+	oderData := models.Oder_item{
+		Useridno:    uint(id),
+		Totalamount: uint(totalAmount),
+		Paymentid:   paymentData.PaymentId,
+		Addid:       addressData.Addressid,
+		Orderstatus: "pending",
+	}
+
+	result = db.Create(&oderData)
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"Error": result.Error.Error(),
+		})
+		return
+	}
+
+	updateAmount := wallet.Amount - totalAmount
+	result = db.Model(&wallet).Where("user_id = ?", id).Update("amount", updateAmount)
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"Error": result.Error.Error(),
+		})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"Message": "Payment Method Wallet",
+		"Status":  "True",
+	})
+
+	OderDetails(c)
+	DeleteCartItems(c)
+}

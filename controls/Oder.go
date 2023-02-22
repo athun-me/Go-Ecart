@@ -1,6 +1,7 @@
 package controls
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/athunlal/config"
@@ -117,15 +118,82 @@ func CancelOrder(c *gin.Context) {
 		})
 	}
 
-	var oder models.OderDetails
+	orderItmeId := c.Query("order_itemid")
+
+	var orderDetails models.OderDetails
+	var orderItem models.Oder_item
+	var wallet models.Wallet
+
 	db := config.DBconnect()
-	result := db.Model(&oder).Where("userid = ?", userid).Update("status", "Canceled")
+
+	err = db.First(&orderItem, orderItmeId).Error
+	if err != nil {
+		c.JSON(400, gin.H{
+			"Error": "order id does't exist",
+		})
+		return
+	}
+
+	if orderItem.Orderstatus == "Canceled" {
+		c.JSON(400, gin.H{
+			"Error": "Oder already canceled",
+		})
+		return
+	}
+
+	result := db.Model(&orderDetails).Where("userid = ? AND oder_itemid = ? ", userid, orderItmeId).Update("status", "Canceled")
 	if result.Error != nil {
 		c.JSON(400, gin.H{
 			"Error": result.Error.Error(),
 		})
 		return
 	}
+
+	result = db.Model(&orderItem).Where("order_id = ?", orderItmeId).Update("orderstatus", "Canceled")
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"Error": result.Error.Error(),
+		})
+		return
+	}
+
+	//adding the balance amount into the wallet
+	result = db.Where("user_id = ?", 2).First(&wallet)
+	if result.Error != nil {
+		walletData := models.Wallet{
+			OrderitemId: orderItem.OrderId,
+			UserId:      uint(userid),
+			Amount:      float64(orderItem.Totalamount),
+		}
+		result = db.Create(&walletData)
+		if result.Error != nil {
+			c.JSON(400, gin.H{
+				"Error": result.Error.Error(),
+			})
+			return
+		} else {
+			c.JSON(200, gin.H{
+				"Message": "Amount added into wallet",
+			})
+		}
+	} else {
+		totalAmount := wallet.Amount + float64(orderItem.Totalamount)
+		fmt.Println("this is the added amount : ", totalAmount)
+
+		result = db.Model(&wallet).Where("user_id = ?", userid).Update("amount", totalAmount)
+		if result.Error != nil {
+			c.JSON(400, gin.H{
+				"Error": result.Error.Error(),
+			})
+			return
+		}else {
+			c.JSON(200, gin.H{
+				"Message": "Amount added into wallet",
+			})
+		}
+
+	}
+
 	c.JSON(200, gin.H{
 		"Massage": "oder canceld",
 	})

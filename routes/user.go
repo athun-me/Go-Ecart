@@ -53,6 +53,8 @@ func UserRouts(c *gin.Engine) {
 
 		//payments route
 		User.GET("/payment/cashOnDelivery", middlereware.UserAuth, controls.CashOnDelivery)
+		User.GET("/payment/walletpayment", middlereware.UserAuth, controls.WalletPay)
+
 		User.GET("/payment/razorpay", middlereware.UserAuth, controls.Razorpay)
 		User.GET("/payment/success", middlereware.UserAuth, controls.RazorpaySuccess)
 		User.GET("/success", middlereware.UserAuth, controls.Success)

@@ -65,9 +65,10 @@ type RazorPay struct {
 
 type Wallet struct {
 	Id          uint
-	OderItem    Oder_item `gorm:"ForeignKey:OderItem"`
+	OderItem    Oder_item `gorm:"ForeignKey:OrderitemId"`
 	OrderitemId uint
 	User        User `gorm:"ForeignKey:UserId"`
-	UserId      uint
+	UserId      uint 
 	Amount      float64
+
 }

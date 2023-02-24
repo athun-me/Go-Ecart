@@ -26,7 +26,7 @@ func Addaddress(c *gin.Context) {
 			"Error": "Error in Binding the JSON",
 		})
 	}
-	db := config.DBconnect()
+	db := config.DB
 
 	db.Model(&models.Address{}).Where("userid = ?", id).Update("defaultadd", false)
 	userEnterData.Userid = uint(id)
@@ -39,7 +39,7 @@ func Addaddress(c *gin.Context) {
 	}
 	db.Model(&userEnterData).Where("addressid = ?", userEnterData.Addressid).Updates(map[string]interface{}{
 		"defaultadd": true,
-		"name":       userName.Firstname,
+		"name":       userName.FirstName,
 	})
 
 	c.JSON(200, gin.H{
@@ -52,7 +52,7 @@ func ShowAddress(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
 	var userAddres models.Address
 
-	db := config.DBconnect()
+	db := config.DB
 	var count int64
 	result := db.Raw("SELECT * from addresses WHERE userid = ?", id).Scan(&userAddres).Count(&count)
 	if count == 0 {
@@ -105,7 +105,7 @@ func EditUserAddress(c *gin.Context) {
 		return
 	}
 	userAddress.Userid = uint(str)
-	db := config.DBconnect()
+	db := config.DB
 
 	result := db.Model(userAddress).Where("userid = ?", id).Updates(models.Address{
 		Name:     userAddress.Name,

@@ -21,7 +21,7 @@ func DeleteCartItems(c *gin.Context) {
 		return
 	}
 	// var cartData models.Cart
-	db := config.DBconnect()
+	db := config.DB
 	// result := db.Where("userid = ?", id).Delete(&cartData)
 	result := db.Exec("delete from carts where userid = ?", id)
 
@@ -44,7 +44,7 @@ func CashOnDelivery(c *gin.Context) {
 
 	var cartData models.Cart
 
-	db := config.DBconnect()
+	db := config.DB
 
 	//fetching the data from the table carts by id
 	result := db.First(&cartData, "userid = ?", id)
@@ -56,7 +56,7 @@ func CashOnDelivery(c *gin.Context) {
 	}
 	//fetching the total amount from the table carts
 	var total_amount float64
-	result = db.Table("carts").Where("userid = ?", id).Select("SUM(totalprice)").Scan(&total_amount)
+	result = db.Table("carts").Where("userid = ?", id).Select("SUM(total_price)").Scan(&total_amount)
 	if result.Error != nil {
 		c.JSON(400, gin.H{
 			"Error": result.Error.Error(),
@@ -69,7 +69,7 @@ func CashOnDelivery(c *gin.Context) {
 		Totalamount:   uint(total_amount),
 		Date:          todaysDate,
 		Status:        "pending",
-		User_id:       uint(id),
+		UserId:        uint(id),
 	}
 	result = db.Create(&paymentData)
 	if result.Error != nil {
@@ -89,11 +89,11 @@ func CashOnDelivery(c *gin.Context) {
 	}
 
 	oderData := models.Oder_item{
-		Useridno:    uint(id),
-		Totalamount: uint(total_amount),
-		Paymentid:   paymentData.PaymentId,
-		Addid:       addressData.Addressid,
-		Orderstatus: "pending",
+		UserIdNo:    uint(id),
+		TotalAmount: uint(total_amount),
+		PaymentId:   paymentData.PaymentId,
+		AddId:       addressData.Addressid,
+		OrderStatus: "pending",
 	}
 
 	result = db.Create(&oderData)
@@ -124,7 +124,7 @@ func Razorpay(c *gin.Context) {
 		})
 	}
 
-	db := config.DBconnect()
+	db := config.DB
 
 	//fetching the user data
 	var userdata models.User
@@ -138,7 +138,7 @@ func Razorpay(c *gin.Context) {
 
 	//fetching the tatal price from the table carts
 	var amount uint
-	row := db.Table("carts").Where("userid = ?", id).Select("SUM(totalprice)").Row()
+	row := db.Table("carts").Where("userid = ?", id).Select("SUM(total_price)").Row()
 	err = row.Scan(&amount)
 
 	if err != nil {
@@ -184,7 +184,7 @@ func RazorpaySuccess(c *gin.Context) {
 		})
 	}
 
-	db := config.DBconnect()
+	db := config.DB
 
 	//fetching the payment details from Razorpay
 	orderid := c.Query("order_id")
@@ -222,7 +222,7 @@ func RazorpaySuccess(c *gin.Context) {
 
 	//Creating payment table
 	paymentdata := models.Payment{
-		User_id:       uint(userID),
+		UserId:        uint(userID),
 		PaymentMethod: method,
 		Status:        status,
 		Date:          todyDate,
@@ -247,11 +247,11 @@ func RazorpaySuccess(c *gin.Context) {
 	pid := paymentdata.PaymentId
 
 	oderData := models.Oder_item{
-		Useridno:    uint(userID),
-		Totalamount: uint(totalprice),
-		Paymentid:   pid,
-		Addid:       addressData.Addressid,
-		Orderstatus: "pending",
+		UserIdNo:    uint(userID),
+		TotalAmount: uint(totalprice),
+		PaymentId:   pid,
+		AddId:       addressData.Addressid,
+		OrderStatus: "pending",
 	}
 
 	result = db.Create(&oderData)
@@ -299,7 +299,7 @@ func WalletPay(c *gin.Context) {
 	var cartData models.Cart
 	var wallet models.Wallet
 
-	db := config.DBconnect()
+	db := config.DB
 
 	result := db.Where("user_id = ?", id).First(&wallet)
 	if result.Error != nil {
@@ -321,7 +321,7 @@ func WalletPay(c *gin.Context) {
 
 	//fetching the total amount from the table carts
 	var totalAmount float64
-	result = db.Table("carts").Where("userid = ?", id).Select("SUM(totalprice)").Scan(&totalAmount)
+	result = db.Table("carts").Where("userid = ?", id).Select("SUM(total_price)").Scan(&totalAmount)
 	if result.Error != nil {
 		c.JSON(400, gin.H{
 			"Error": result.Error.Error(),
@@ -342,7 +342,7 @@ func WalletPay(c *gin.Context) {
 		Totalamount:   uint(totalAmount),
 		Date:          todaysDate,
 		Status:        "pending",
-		User_id:       uint(id),
+		UserId:        uint(id),
 	}
 	result = db.Create(&paymentData)
 	if result.Error != nil {
@@ -363,11 +363,11 @@ func WalletPay(c *gin.Context) {
 	}
 
 	oderData := models.Oder_item{
-		Useridno:    uint(id),
-		Totalamount: uint(totalAmount),
-		Paymentid:   paymentData.PaymentId,
-		Addid:       addressData.Addressid,
-		Orderstatus: "pending",
+		UserIdNo:    uint(id),
+		TotalAmount: uint(totalAmount),
+		PaymentId:   paymentData.PaymentId,
+		AddId:       addressData.Addressid,
+		OrderStatus: "pending",
 	}
 
 	result = db.Create(&oderData)

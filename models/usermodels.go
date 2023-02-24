@@ -4,8 +4,8 @@ import "time"
 
 type User struct {
 	ID          uint   `json:"id" gorm:"primaryKey;unique"  `
-	Firstname   string `json:"first_name"  gorm:"not null" validate:"required,min=2,max=50"`
-	Lastname    string `json:"last_name"    gorm:"not null"    validate:"required,min=1,max=50"`
+	FirstName   string `json:"first_name"  gorm:"not null" validate:"required,min=2,max=50"`
+	LastName    string `json:"last_name"    gorm:"not null"    validate:"required,min=1,max=50"`
 	Email       string `json:"email"   gorm:"not null;unique"  validate:"email,required"`
 	Password    string `json:"password" gorm:"not null"  validate:"required"`
 	PhoneNumber int    `json:"phone"   gorm:"not null;unique" validate:"required"`
@@ -18,9 +18,9 @@ type User struct {
 
 type Address struct {
 	Addressid uint `JSON:"addressid" gorm:"primarykey;unique"`
-	
-	User      User `gorm:"ForeignKey:Userid"`
-	Userid    uint `JSON:"uid"`
+
+	User   User `gorm:"ForeignKey:Userid"`
+	Userid uint `JSON:"uid"`
 
 	Name       string `JSON:"name" gorm:"not null"`
 	Phoneno    string `JSON:"phoneno" gorm:"not null"`

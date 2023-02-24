@@ -44,21 +44,19 @@ func UserSignUP(c *gin.Context) {
 		return
 	}
 
-	
-	db := config.DBconnect()
-	result := db.First(&temp_user, "email LIKE ?", Data.Email)
-	
+	db := config.DB
+	result := db.First(&temp_user, "email LIKE ?", Data.Email).Error
+
 	if result.Error != nil {
 		user := models.User{
-			
-			Firstname:   Data.Firstname,
-			Lastname:    Data.Lastname,
+
+			FirstName:   Data.Firstname,
+			LastName:    Data.Lastname,
 			Email:       Data.Email,
 			Password:    string(hash),
 			PhoneNumber: Data.PhoneNumber,
 		}
-		
-		
+
 		otp := VerifyOTP(Data.Email)
 		result2 := db.Create(&user)
 		if result2.Error != nil {
@@ -98,7 +96,7 @@ func UesrLogin(c *gin.Context) {
 		return
 	}
 	var checkUser models.User
-	db := config.DBconnect()
+	db := config.DB
 	result := db.First(&checkUser, "email LIKE ?", user.Email)
 
 	if checkUser.Isblocked == true {
@@ -185,7 +183,7 @@ func UserChangePassword(c *gin.Context) {
 	}
 
 	var userData models.User
-	db := config.DBconnect()
+	db := config.DB
 	result := db.First(&userData, "id = ?", id)
 	if result.Error != nil {
 		c.JSON(409, gin.H{
@@ -235,7 +233,7 @@ func Updatepassword(c *gin.Context) {
 		})
 		return
 	}
-	db := config.DBconnect()
+	db := config.DB
 	result := db.First(&userData, "id = ?", id)
 	if result.Error != nil {
 		c.JSON(409, gin.H{
@@ -260,7 +258,7 @@ func ShowUserDetails(c *gin.Context) {
 		})
 		return
 	}
-	db := config.DBconnect()
+	db := config.DB
 	result := db.First(&userData, "id = ?", id)
 	if result.Error != nil {
 		c.JSON(409, gin.H{
@@ -293,7 +291,7 @@ func EditUserProfilebyUser(c *gin.Context) {
 		})
 		return
 	}
-	db := config.DBconnect()
+	db := config.DB
 	result := db.First(&userData, "id = ?", id)
 	if result.Error != nil {
 		c.JSON(409, gin.H{
@@ -302,8 +300,8 @@ func EditUserProfilebyUser(c *gin.Context) {
 		return
 	}
 	result = db.Model(&userData).Updates(models.User{
-		Firstname:   userEnterData.Firstname,
-		Lastname:    userEnterData.Lastname,
+		FirstName:   userEnterData.Firstname,
+		LastName:    userEnterData.Lastname,
 		PhoneNumber: userEnterData.PhoneNumber,
 	})
 
@@ -317,8 +315,8 @@ func EditUserProfilebyUser(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"Message": "Successfully Updated the profile",
 		"Updated data": gin.H{
-			"First name": userData.Firstname,
-			"Last name":  userData.Lastname,
+			"First name": userData.FirstName,
+			"Last name":  userData.LastName,
 			"Phone":      userData.PhoneNumber,
 		},
 	})

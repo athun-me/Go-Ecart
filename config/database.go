@@ -9,7 +9,9 @@ import (
 	"gorm.io/gorm"
 )
 
-func DBconnect() *gorm.DB {
+var DB *gorm.DB
+
+func DBconnect() (*gorm.DB, error) {
 	dns := os.Getenv("DB_URL")
 	DB, err := gorm.Open(postgres.Open(dns), &gorm.Config{})
 	if err != nil {
@@ -32,6 +34,6 @@ func DBconnect() *gorm.DB {
 	DB.AutoMigrate(&models.Oder_item{})
 	DB.AutoMigrate(&models.Wallet{})
 
-	return DB
+	return DB, nil
 
 }

@@ -30,7 +30,7 @@ func AddBrands(c *gin.Context) {
 		})
 		return
 	}
-	DB := config.DBconnect()
+	DB := config.DB
 	result := DB.Create(&addbrand)
 	if result.Error != nil {
 		c.JSON(500, gin.H{
@@ -47,7 +47,7 @@ func AddBrands(c *gin.Context) {
 //view brand
 func ViewBrand(c *gin.Context) {
 	var brandData []models.Brand
-	db := config.DBconnect()
+	db := config.DB
 	result := db.Find(&brandData)
 	if result.Error != nil {
 		c.JSON(500, gin.H{
@@ -78,10 +78,10 @@ func EditBrand(c *gin.Context) {
 		return
 	}
 	editbrands.ID = uint(id)
-	DB := config.DBconnect()
+	DB := config.DB
 
 	result := DB.Model(&editbrands).Updates(models.Brand{
-		Brandname: editbrands.Brandname,
+		BrandName: editbrands.BrandName,
 	})
 
 	if result.Error != nil {
@@ -121,7 +121,7 @@ func AddToCart(c *gin.Context) {
 		return
 	}
 
-	db := config.DBconnect()
+	db := config.DB
 
 	//checking the product is exist or not
 	result := db.First(&productData, bindData.Product_id)
@@ -144,14 +144,15 @@ func AddToCart(c *gin.Context) {
 	var Price uint
 
 	//checking the produt_id and user_id  in the carts table
-	err = db.Table("carts").Where("product_id = ? AND userid = ? ", bindData.Product_id, id).Select("quantity", "totalprice").Row().Scan(&sum, &Price)
+	err = db.Table("carts").Where("product_id = ? AND userid = ? ", bindData.Product_id, id).Select("quantity", "total_price").Row().Scan(&sum, &Price)
+	fmt.Println("this is the erro : ", err)
 	if err != nil {
 		totalprice := productData.Price * bindData.Quantity
 		cartitems := models.Cart{
-			Product_id: bindData.Product_id,
+			ProductId:  bindData.Product_id,
 			Quantity:   bindData.Quantity,
 			Price:      productData.Price,
-			Totalprice: totalprice,
+			TotalPrice: totalprice,
 			Userid:     uint(id),
 		}
 
@@ -175,7 +176,7 @@ func AddToCart(c *gin.Context) {
 	totalPrice := productData.Price * totalQuantity
 
 	//updating the quatity and the total price  to the carts
-	result = db.Model(&models.Cart{}).Where("product_id = ? AND userid = ? ", bindData.Product_id, id).Updates(map[string]interface{}{"quantity": totalQuantity, "totalprice": totalPrice})
+	result = db.Model(&models.Cart{}).Where("product_id = ? AND userid = ? ", bindData.Product_id, id).Updates(map[string]interface{}{"quantity": totalQuantity, "total_price": totalPrice})
 	if result.Error != nil {
 		c.JSON(400, gin.H{
 			"Error": result.Error.Error(),
@@ -203,9 +204,13 @@ func ViewCart(c *gin.Context) {
 		Image       string
 		Price       string
 	}
+	db := config.DB
 	var datas []cartdata
-	db := config.DBconnect()
-	result := db.Table("carts").Select("products.productname, carts.quantity, carts.price, carts.totalprice").Joins("INNER JOIN products ON products.productid=carts.product_id").Where("userid = ?", id).Scan(&datas)
+
+	result := db.Table("carts").Select("carts.*, products.product_name, carts.Quantity").
+		Joins("INNER JOIN products ON products.product_id = carts.product_id").
+		Where("userid = ?", id).Scan(&datas)
+
 	if result.Error != nil {
 		c.JSON(404, gin.H{
 			"Error": result.Error.Error(),
@@ -233,7 +238,7 @@ func DeleteCart(c *gin.Context) {
 		})
 	}
 
-	db := config.DBconnect()
+	db := config.DB
 	result := db.Exec("delete from carts where id= ? AND userid = ?", id, userid)
 	count := result.RowsAffected
 	if count == 0 {
@@ -255,15 +260,11 @@ func DeleteCart(c *gin.Context) {
 
 //Add image of the product by admin
 func AddImages(c *gin.Context) {
-	
 	imagepath, _ := c.FormFile("image")
-	extension := filepath.Ext(imagepath.Filename)
-	image := uuid.New().String() + extension
-	c.SaveUploadedFile(imagepath, "./public/images"+image)
 	pidconv := c.PostForm("product_id")
 	pid, _ := strconv.Atoi(pidconv)
-	db := config.DBconnect()
 
+	db := config.DB
 	var product models.Product
 	result := db.First(&product, pid)
 	if result.Error != nil {
@@ -273,9 +274,13 @@ func AddImages(c *gin.Context) {
 		return
 	}
 
+	extension := filepath.Ext(imagepath.Filename)
+	image := uuid.New().String() + extension
+	c.SaveUploadedFile(imagepath, "./public/images"+image)
+
 	imagedata := models.Image{
-		Image:      image,
-		Product_id: uint(pid),
+		Image:     image,
+		ProductId: uint(pid),
 	}
 	result = db.Create(&imagedata)
 	if result.Error != nil {
@@ -303,7 +308,7 @@ func AddCoupon(c *gin.Context) {
 
 	var userEnterData data
 	var couponData []models.Coupon
-	db := config.DBconnect()
+	db := config.DB
 
 	if c.Bind(&userEnterData) != nil {
 		c.JSON(400, gin.H{
@@ -315,14 +320,9 @@ func AddCoupon(c *gin.Context) {
 
 	userEnterData.Expired = specificTime
 	var count int64
+
 	result := db.First(&couponData, "coupon_code = ?", userEnterData.CouponCode).Count(&count)
 	if result.Error != nil {
-		c.JSON(404, gin.H{
-			"Error": result.Error.Error(),
-		})
-		return
-	}
-	if count == 0 {
 		Data := models.Coupon{
 			CouponCode:    userEnterData.CouponCode,
 			DiscountPrice: userEnterData.DiscountPrice,
@@ -360,7 +360,7 @@ func CheckCoupon(c *gin.Context) {
 		return
 	}
 
-	db := config.DBconnect()
+	db := config.DB
 
 	var count int64
 	result := db.Find(&coupon, "coupon_code = ?", userEnterData.Coupon).Count(&count)
@@ -421,7 +421,7 @@ func Applycoupon(c *gin.Context) {
 		})
 		return
 	}
-	db := config.DBconnect()
+	db := config.DB
 
 	//checking coupon is existig or not
 	var count int64
@@ -507,10 +507,10 @@ func Wishlist(c *gin.Context) {
 		})
 	}
 
-	db := config.DBconnect()
+	db := config.DB
 	Data := models.Wishlist{
-		Product_id: uint(id),
-		Userid:     uint(userId),
+		ProductId: uint(id),
+		Userid:    uint(userId),
 	}
 	result := db.Create(&Data)
 	if result.Error != nil {
@@ -536,7 +536,7 @@ func AddCatogeries(c *gin.Context) {
 			"Error": "countl not bind the JSON data",
 		})
 	}
-	db := config.DBconnect()
+	db := config.DB
 	var count int64
 	result := db.Find(&CatagoryData, "catogery_name = ?", category.CategoryName).Count(&count)
 	if result.Error != nil {
@@ -555,7 +555,8 @@ func AddCatogeries(c *gin.Context) {
 			})
 		}
 		c.JSON(200, gin.H{
-			"message": "Catogery created",
+			"message":  "Catogery created",
+			"Catogery": createData,
 		})
 	} else {
 		c.JSON(400, gin.H{
@@ -569,7 +570,7 @@ func FilteringByCatogery(c *gin.Context) {
 	id := c.Param("id")
 
 	var products []models.Product
-	db := config.DBconnect()
+	db := config.DB
 	result := db.Where("catogery_id = ?", id).Find(&products)
 	if result.Error != nil {
 		c.JSON(400, gin.H{
@@ -594,7 +595,7 @@ func SearchProduct(c *gin.Context) {
 		})
 	}
 	var products []models.Product
-	db := config.DBconnect()
+	db := config.DB
 	var count int64
 	result := db.Raw("SELECT * FROM products WHERE brand_id (SELECT id FROM brands WHERE brandname LIKE ?)", "%"+userEnterData.SearchValue+"%").Scan(&products).Count(&count)
 	if result.Error != nil {
@@ -698,7 +699,7 @@ func InvoiceF(c *gin.Context) {
 		return
 	}
 
-	db := config.DBconnect()
+	db := config.DB
 	var user models.User
 	var Payment models.Payment
 	var oderData models.OderDetails
@@ -752,8 +753,8 @@ func InvoiceF(c *gin.Context) {
 
 	//fetching the product data from table products using Oder_itemid from table Oder_item.
 	var products []models.Product
-	err = db.Joins("JOIN oder_details ON products.productid = oder_details.product_id").
-		Where("oder_details.oder_itemid = ?", oderData.OderItemid).Find(&products).Error
+	err = db.Joins("JOIN oder_details ON products.product_id = oder_details.product_id").
+		Where("oder_details.oder_item_id = ?", oderData.OderItemId).Find(&products).Error
 	if err != nil {
 		c.JSON(400, gin.H{
 			"Error": "somthing went wrong",
@@ -765,7 +766,7 @@ func InvoiceF(c *gin.Context) {
 	items := make([]Item, len(products))
 	for i, data := range products {
 		items[i] = Item{
-			Product:     data.Productname,
+			Product:     data.ProductName,
 			Price:       data.Price,
 			Description: data.Description,
 		}
@@ -776,10 +777,10 @@ func InvoiceF(c *gin.Context) {
 
 	//executing the template Invoice
 	invoice := Invoice{
-		Name:          user.Firstname,
+		Name:          user.FirstName,
 		Date:          timeString,
 		Email:         user.Email,
-		OrderId:       oderData.OderItemid,
+		OrderId:       oderData.OderItemId,
 		PaymentMethod: Payment.PaymentMethod,
 		Totalamount:   int64(Payment.Totalamount),
 		Address: []Address{
@@ -815,7 +816,7 @@ func InvoiceF(c *gin.Context) {
 		return
 	}
 
-	cmd := exec.Command("wkhtmltopdf", "-", "invoice.pdf")
+	cmd := exec.Command("wkhtmltopdf", "-", "./public/invoice.pdf")
 	cmd.Stdin = &buf
 	err = cmd.Run()
 	if err != nil {
@@ -861,7 +862,7 @@ func SalesReport(c *gin.Context) {
 	//fetching the data from the table Order details where start date to end date
 	var orderDetail []models.OderDetails
 	// var reportData []Report
-	db := config.DBconnect()
+	db := config.DB
 
 	result := db.Preload("Product").Preload("Payment").
 		Where("created_at BETWEEN ? AND ?", fromTime, toTime).
@@ -888,13 +889,12 @@ func SalesReport(c *gin.Context) {
 	f.SetCellValue(SheetName, "E1", "Total Amount")
 	f.SetCellValue(SheetName, "F1", "Payment method")
 	f.SetCellValue(SheetName, "G1", "Payment Status")
-
 	// Set the value of cell
 	for i, report := range orderDetail {
 		row := i + 2
 		f.SetCellValue(SheetName, fmt.Sprintf("A%d", row), report.CreatedAt.Format("01/02/2006"))
 		f.SetCellValue(SheetName, fmt.Sprintf("B%d", row), report.Oderid)
-		f.SetCellValue(SheetName, fmt.Sprintf("C%d", row), report.Product.Productname)
+		f.SetCellValue(SheetName, fmt.Sprintf("C%d", row), report.Product.ProductName)
 		f.SetCellValue(SheetName, fmt.Sprintf("D%d", row), report.Product.Price)
 		f.SetCellValue(SheetName, fmt.Sprintf("E%d", row), report.Payment.Totalamount)
 		f.SetCellValue(SheetName, fmt.Sprintf("F%d", row), report.Payment.PaymentMethod)

@@ -23,7 +23,7 @@ func OderDetails(c *gin.Context) {
 	var UserPayment models.Payment
 	var UserCart []models.Cart
 
-	db := config.DBconnect()
+	db := config.DB
 	result := db.Find(&UserAddress, "userid = ? AND defaultadd = true", userId)
 	if result.Error != nil {
 		c.JSON(400, gin.H{
@@ -44,17 +44,17 @@ func OderDetails(c *gin.Context) {
 		return
 	}
 	var oder_item models.Oder_item
-	db.Last(&oder_item, "useridno = ?", userId)
+	db.Last(&oder_item, "user_id_no = ?", userId)
 
 	for _, UserCart := range UserCart {
 		OderDetails := models.OderDetails{
 			Userid:     uint(userId),
 			AddressId:  UserAddress.Addressid,
-			Paymentid:  UserPayment.PaymentId,
-			Product_id: UserCart.Product_id,
+			PaymentId:  UserPayment.PaymentId,
+			ProductId:  UserCart.ProductId,
 			Status:     "pending",
 			Quantity:   UserCart.Quantity,
-			OderItemid: oder_item.OrderId,
+			OderItemId: oder_item.OrderId,
 		}
 
 		result = db.Create(&OderDetails)
@@ -82,7 +82,7 @@ func ShowOder(c *gin.Context) {
 	var userOder []models.OderDetails
 	var products []models.Product
 
-	db := config.DBconnect()
+	db := config.DB
 	result := db.Find(&userOder, "userid = ?", userId)
 	if result.Error != nil {
 		c.JSON(400, gin.H{
@@ -93,7 +93,7 @@ func ShowOder(c *gin.Context) {
 
 	for _, order := range userOder {
 
-		result := db.Find(&products, "productid = ? ", order.Product_id)
+		result := db.Find(&products, "product_id = ? ", order.ProductId)
 		if result.Error != nil {
 			c.JSON(400, gin.H{
 				"Error": result.Error.Error(),
@@ -101,7 +101,7 @@ func ShowOder(c *gin.Context) {
 			return
 		}
 		c.JSON(200, gin.H{
-			"Product name ": products[0].Productname,
+			"Product name ": products[0].ProductName,
 			"Price":         products[0].Price,
 			"Description":   products[0].Description,
 			"Quantity":      userOder[0].Quantity,
@@ -124,7 +124,7 @@ func CancelOrder(c *gin.Context) {
 	var orderItem models.Oder_item
 	var wallet models.Wallet
 
-	db := config.DBconnect()
+	db := config.DB
 
 	err = db.First(&orderItem, orderItmeId).Error
 	if err != nil {
@@ -134,14 +134,14 @@ func CancelOrder(c *gin.Context) {
 		return
 	}
 
-	if orderItem.Orderstatus == "Canceled" {
+	if orderItem.OrderStatus == "Canceled" {
 		c.JSON(400, gin.H{
 			"Error": "Oder already canceled",
 		})
 		return
 	}
 
-	result := db.Model(&orderDetails).Where("userid = ? AND oder_itemid = ? ", userid, orderItmeId).Update("status", "Canceled")
+	result := db.Model(&orderDetails).Where("userid = ? AND oder_item_id = ? ", userid, orderItmeId).Update("status", "Canceled")
 	if result.Error != nil {
 		c.JSON(400, gin.H{
 			"Error": result.Error.Error(),
@@ -149,7 +149,7 @@ func CancelOrder(c *gin.Context) {
 		return
 	}
 
-	result = db.Model(&orderItem).Where("order_id = ?", orderItmeId).Update("orderstatus", "Canceled")
+	result = db.Model(&orderItem).Where("order_id = ?", orderItmeId).Update("order_status", "Canceled")
 	if result.Error != nil {
 		c.JSON(400, gin.H{
 			"Error": result.Error.Error(),
@@ -158,12 +158,11 @@ func CancelOrder(c *gin.Context) {
 	}
 
 	//adding the balance amount into the wallet
-	result = db.Where("user_id = ?", 2).First(&wallet)
+	result = db.Where("user_id = ?", userid).First(&wallet)
 	if result.Error != nil {
 		walletData := models.Wallet{
-			OrderitemId: orderItem.OrderId,
-			UserId:      uint(userid),
-			Amount:      float64(orderItem.Totalamount),
+			UserId: uint(userid),
+			Amount: float64(orderItem.TotalAmount),
 		}
 		result = db.Create(&walletData)
 		if result.Error != nil {
@@ -177,7 +176,7 @@ func CancelOrder(c *gin.Context) {
 			})
 		}
 	} else {
-		totalAmount := wallet.Amount + float64(orderItem.Totalamount)
+		totalAmount := wallet.Amount + float64(orderItem.TotalAmount)
 		fmt.Println("this is the added amount : ", totalAmount)
 
 		result = db.Model(&wallet).Where("user_id = ?", userid).Update("amount", totalAmount)
@@ -186,7 +185,7 @@ func CancelOrder(c *gin.Context) {
 				"Error": result.Error.Error(),
 			})
 			return
-		}else {
+		} else {
 			c.JSON(200, gin.H{
 				"Message": "Amount added into wallet",
 			})
@@ -219,7 +218,7 @@ func ReturnOrderByUser(c *gin.Context) {
 
 	var oder models.OderDetails
 	var oderItem models.Oder_item
-	db := config.DBconnect()
+	db := config.DB
 	result := db.Model(&oder).Where("userid = ? AND oder_itemid = ?", userid, orderId).Update("status", "Return product")
 	if result.Error != nil {
 		c.JSON(400, gin.H{
@@ -239,9 +238,4 @@ func ReturnOrderByUser(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"Massage": "Product Return",
 	})
-}
-
-//>>>>>>>>>>>>> Return acsept <<<<<<<<<<<<<<<<<
-func ReturnAcsept(c *gin.Context) {
-
 }

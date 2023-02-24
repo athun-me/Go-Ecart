@@ -13,7 +13,7 @@ import (
 
 func ViewAllUser(c *gin.Context) {
 	var user []models.User
-	db := config.DBconnect()
+	db := config.DB
 	result := db.Limit(3).Find(&user)
 	if result.Error != nil {
 		c.JSON(500, gin.H{
@@ -35,7 +35,7 @@ func AdminSearchUser(c *gin.Context) {
 	id := c.Param("id")
 
 	var user []models.User
-	db := config.DBconnect()
+	db := config.DB
 	result := db.First(&user, id)
 
 	if result.Error != nil {
@@ -57,7 +57,7 @@ func AdminBlockUser(c *gin.Context) {
 	id := c.Param("id")
 
 	var user models.User
-	db := config.DBconnect()
+	db := config.DB
 	var count int64
 
 	result := db.Model(user).Where("id = ?", id).Update("isblocked", true).Count(&count)
@@ -73,7 +73,7 @@ func AdminBlockUser(c *gin.Context) {
 		})
 		return
 	}
-	fmt.Println(user.Firstname)
+	fmt.Println(user.FirstName)
 	c.JSON(200, gin.H{
 		"Massage": "Blocked",
 	})
@@ -86,10 +86,10 @@ func AdminUnlockUser(c *gin.Context) {
 	id := c.Param("id")
 
 	var user []models.User
-	db := config.DBconnect()
+	db := config.DB
 	var count int64
 	result := db.Model(user).Where("id = ?", id).Update("isblocked", false).Count(&count)
-	if count ==0 {
+	if count == 0 {
 		c.JSON(500, gin.H{
 			"Message": "Could not find the users",
 		})

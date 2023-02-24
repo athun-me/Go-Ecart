@@ -49,7 +49,7 @@ func UserRouts(c *gin.Engine) {
 
 		//Forgot Password
 		User.PUT("/forgotpassword", middlereware.UserAuth, controls.GenerateOtpForForgotPassword)
-		User.POST("/changepassword", middlereware.UserAuth, controls.ChangePassword)
+		User.POST("/forgotpassword/changepassword", middlereware.UserAuth, controls.ChangePassword)
 
 		//payments route
 		User.GET("/payment/cashOnDelivery", middlereware.UserAuth, controls.CashOnDelivery)

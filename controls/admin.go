@@ -49,7 +49,7 @@ func AdminSignup(c *gin.Context) {
 		return
 	}
 
-	db := config.DBconnect()
+	db := config.DB
 
 	result := db.First(&temp_user, "email LIKE ?", Data.Email)
 	if result.Error != nil {
@@ -112,7 +112,7 @@ func AdminLogin(c *gin.Context) {
 
 	var checkAdmin models.Admin
 
-	db := config.DBconnect()
+	db := config.DB
 	result := db.First(&checkAdmin, "email LIKE ?", admin.Email)
 	if result.Error != nil {
 		c.JSON(404, gin.H{

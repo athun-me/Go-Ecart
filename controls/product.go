@@ -23,9 +23,9 @@ func AddProduct(c *gin.Context) {
 		return
 	}
 
-	db := config.DBconnect()
+	db := config.DB
 	var count int64
-	result := db.Find(&product, "productname = ?", product.Productname).Count(&count)
+	result := db.Find(&product, "product_name = ?", product.ProductName).Count(&count)
 	if result.Error != nil {
 		c.JSON(404, gin.H{
 			"Error": result.Error.Error(),
@@ -56,16 +56,16 @@ func ViewProducts(c *gin.Context) {
 	limit, _ := strconv.Atoi(c.Query("limit"))
 	offset, _ := strconv.Atoi(c.Query("offset"))
 	type datas struct {
-		Productname string
+		Product_name string
 		Description string
 		Stock       string
 		Price       string
-		Brandname   string
+		Brand_name   string
 	}
 	var products datas
 
-	db := config.DBconnect()
-	query := "SELECT products.productname, products.description, products.stock, products.price, brands.brandname FROM products LEFT JOIN brands ON products.brand_id=brands.id  GROUP BY products.productid, brands.brandname"
+	db := config.DB
+	query := "SELECT products.product_name, products.description, products.stock, products.price, brands.brand_name FROM products LEFT JOIN brands ON products.brand_id=brands.id  GROUP BY products.product_id, brands.brand_name"
 
 	if limit != 0 || offset != 0 {
 		if limit == 0 {

@@ -78,7 +78,7 @@ func OtpValidation(c *gin.Context) {
 		})
 		return
 	}
-	db := config.DBconnect()
+	db := config.DB
 	result := db.First(&userData, "otp LIKE ? AND email LIKE ?", user_otp.Otp, user_otp.Email)
 
 	if result.Error != nil {
@@ -111,7 +111,7 @@ func GenerateOtpForForgotPassword(c *gin.Context) {
 	}
 	otp := VerifyOTP(data.Email)
 
-	db := config.DBconnect()
+	db := config.DB
 	var userData models.User
 
 	result := db.Model(userData).Where("email = ?", data.Email).Update("otp", otp)
@@ -156,7 +156,7 @@ func ChangePassword(c *gin.Context) {
 		})
 		return
 	}
-	db := config.DBconnect()
+	db := config.DB
 	result := db.Find(&userData, "email = ?", data.Email)
 	if result.Error != nil {
 		c.JSON(409, gin.H{

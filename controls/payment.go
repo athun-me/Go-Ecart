@@ -1,6 +1,7 @@
 package controls
 
 import (
+	"fmt"
 	"time"
 
 	"os"
@@ -387,6 +388,20 @@ func WalletPay(c *gin.Context) {
 		return
 	}
 
+	wHistory := models.WalletHistory{
+		UserId:         uint(id),
+		Amount:         totalAmount,
+		TransctionType: "Debited",
+		Date:           todaysDate,
+	}
+	result = db.Create(&wHistory)
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"Error": result.Error.Error(),
+		})
+		return
+	}
+
 	c.JSON(200, gin.H{
 		"Message": "Payment Method Wallet",
 		"Status":  "True",
@@ -394,4 +409,29 @@ func WalletPay(c *gin.Context) {
 
 	OderDetails(c)
 	DeleteCartItems(c)
+}
+
+func ShowWallet(c *gin.Context) {
+	userid, err := strconv.Atoi(c.GetString("userid"))
+	if err != nil {
+		c.JSON(400, gin.H{
+			"Error": err.Error(),
+		})
+		return
+	}
+
+	fmt.Println("user id : ", userid)
+	var wallet models.Wallet
+
+	db := config.DB
+	result := db.First(&wallet).Where("user_id = ?", userid)
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"Error": result.Error.Error(),
+		})
+		return
+	}
+	c.JSON(200, gin.H{
+		"Balance Amount": wallet.Amount,
+	})
 }

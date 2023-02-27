@@ -67,3 +67,12 @@ type Wallet struct {
 	UserId uint
 	Amount float64
 }
+
+type WalletHistory struct {
+	Id             uint `JSON:"Id" gorm:"primarykey"`
+	User           User `gorm:"ForeignKey:UserId"`
+	UserId         uint 
+	Amount         float64 
+	TransctionType string
+	Date           time.Time
+}

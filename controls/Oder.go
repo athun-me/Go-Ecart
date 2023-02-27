@@ -3,6 +3,7 @@ package controls
 import (
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/athunlal/config"
 	"github.com/athunlal/models"
@@ -190,7 +191,21 @@ func CancelOrder(c *gin.Context) {
 				"Message": "Amount added into wallet",
 			})
 		}
+	}
 
+	wHistory := models.WalletHistory{
+		UserId:         uint(userid),
+		Amount:         float64(orderItem.TotalAmount),
+		TransctionType: "Credit",
+		Date:           time.Now(),
+	}
+
+	result = db.Create(&wHistory)
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"Error": result.Error.Error(),
+		})
+		return
 	}
 
 	c.JSON(200, gin.H{

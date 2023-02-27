@@ -33,6 +33,7 @@ func DBconnect() (*gorm.DB, error) {
 	DB.AutoMigrate(&models.RazorPay{})
 	DB.AutoMigrate(&models.Oder_item{})
 	DB.AutoMigrate(&models.Wallet{})
+	DB.AutoMigrate(&models.WalletHistory{})
 
 	return DB, nil
 

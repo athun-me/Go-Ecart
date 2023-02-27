@@ -963,3 +963,33 @@ func Downloadpdf(c *gin.Context) {
 	c.Header("Content-Type", "application/pdf")
 	c.File("./public/SalesReport.pdf")
 }
+
+//Wallet history
+func WalletHistory(c *gin.Context) {
+	userid, err := strconv.Atoi(c.GetString("userid"))
+	if err != nil {
+		c.JSON(400, gin.H{
+			"Error": err.Error(),
+		})
+	}
+	var WalletHistory []models.WalletHistory
+	db := config.DB
+	result := db.Find(&WalletHistory).Where("user_id", userid)
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"Error": result.Error.Error(),
+		})
+		return
+	}
+	var response []map[string]interface{}
+	for _, history := range WalletHistory {
+		row := map[string]interface{}{
+			"Amount":          history.Amount,
+			"TransactionType": history.TransctionType,
+			"Date":            history.Date,
+		}
+		response = append(response, row)
+	}
+
+	c.JSON(200, gin.H{"data": response})
+}

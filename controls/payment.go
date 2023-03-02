@@ -41,6 +41,7 @@ func CashOnDelivery(c *gin.Context) {
 		c.JSON(400, gin.H{
 			"Error": "Error in string conversion",
 		})
+		return
 	}
 
 	var cartData models.Cart
@@ -50,8 +51,8 @@ func CashOnDelivery(c *gin.Context) {
 	//fetching the data from the table carts by id
 	result := db.First(&cartData, "userid = ?", id)
 	if result.Error != nil {
-		c.JSON(400, gin.H{
-			"Error": result.Error.Error(),
+		c.JSON(404, gin.H{
+			"Message": "Cart is empty",
 		})
 		return
 	}
@@ -60,7 +61,7 @@ func CashOnDelivery(c *gin.Context) {
 	result = db.Table("carts").Where("userid = ?", id).Select("SUM(total_price)").Scan(&total_amount)
 	if result.Error != nil {
 		c.JSON(400, gin.H{
-			"Error": result.Error.Error(),
+			"Error": "Error fetching the total amount from the table carts",
 		})
 		return
 	}
@@ -84,7 +85,7 @@ func CashOnDelivery(c *gin.Context) {
 	result = db.First(&addressData, "userid = ?", id)
 	if result.Error != nil {
 		c.JSON(400, gin.H{
-			"Error": result.Error.Error(),
+			"Error": "address not exist",
 		})
 		return
 	}
@@ -100,7 +101,7 @@ func CashOnDelivery(c *gin.Context) {
 	result = db.Create(&oderData)
 	if result.Error != nil {
 		c.JSON(400, gin.H{
-			"Error": result.Error.Error(),
+			"Error": "Creating the table order",
 		})
 		return
 	}
@@ -314,8 +315,8 @@ func WalletPay(c *gin.Context) {
 	//fetching the data from the table carts by id
 	result = db.First(&cartData, "userid = ?", id)
 	if result.Error != nil {
-		c.JSON(400, gin.H{
-			"Error": result.Error.Error(),
+		c.JSON(404, gin.H{
+			"Message": "Cart is empty",
 		})
 		return
 	}

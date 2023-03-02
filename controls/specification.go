@@ -189,48 +189,6 @@ func AddToCart(c *gin.Context) {
 }
 
 //View cart items using user id
-// func ViewCart(c *gin.Context) {
-// 	id, err := strconv.Atoi(c.GetString("userid"))
-// 	if err != nil {
-// 		c.JSON(400, gin.H{
-// 			"Error": "Error in string conversion",
-// 		})
-// 	}
-// 	type cartdata struct {
-// 		Productname string `json:"Productname"`
-// 		Quantity    uint   `json:"Quantity"`
-// 		Totalprice  uint   `json:"Totalprice"`
-// 		Image       string `json:"Image"`
-// 		Price       uint   `json:"Price"`
-// 	}
-	
-// 	db := config.DB
-// 	var datas []cartdata
-
-// 	result := db.Table("carts").
-//     Select("carts.*, products.product_name, products.price, carts.Quantity, (carts.Quantity * products.price) as total_price").
-//     Joins("INNER JOIN products ON products.product_id = carts.product_id").
-//     Where("userid = ?", id).Scan(&datas)
-
-
-
-// 	if result.Error != nil {
-// 		c.JSON(404, gin.H{
-// 			"Error": result.Error.Error(),
-// 		})
-// 		return
-// 	}
-// 	if datas != nil {
-// 		c.JSON(200, gin.H{
-// 			"Cart Items": datas,
-// 		})
-// 	} else {
-// 		c.JSON(404, gin.H{
-// 			"Message": "Cart is empty",
-// 		})
-// 	}
-// }
-
 func ViewCart(c *gin.Context) {
 	id, err := strconv.Atoi(c.GetString("userid"))
 	if err != nil {
@@ -238,23 +196,34 @@ func ViewCart(c *gin.Context) {
 			"Error": "Error in string conversion",
 		})
 	}
+
 	type cartdata struct {
-		Productname string
-		Quantity    uint
-		Totalprice  uint
-		Image       string
-		Price       string
+		Product_name string
+		Quantity     uint
+		Total_price  uint
+		Image        string
+		Price        string
 	}
+
 	var datas []cartdata
+
 	db := config.DB
-	result := db.Table("carts").Select("products.productname, carts.quantity, carts.price, carts.totalprice").Joins("INNER JOIN products ON products.productid=carts.product_id").Where("userid = ?", id).Scan(&datas)
+
+	result := db.Table("carts").
+		Select("products.product_name, images.image, carts.quantity, carts.price, carts.total_price").
+		Joins("INNER JOIN products ON products.product_id=carts.product_id").
+		Joins("INNER JOIN images ON images.product_id=carts.product_id").
+		Where("userid = ?", id).
+		Scan(&datas)
+
 	if result.Error != nil {
 		c.JSON(404, gin.H{
 			"Error": result.Error.Error(),
 		})
 		return
 	}
-	if datas != nil {
+	fmt.Println("this is the slice : ", datas)
+	if len(datas) > 0 {
 		c.JSON(200, gin.H{
 			"Cart Items": datas,
 		})
@@ -537,19 +506,28 @@ func Wishlist(c *gin.Context) {
 			"Error": "Error in string conversion",
 		})
 	}
-	id, err := strconv.Atoi(c.Param("id"))
+	productId, err := strconv.Atoi(c.Query("pid"))
 	if err != nil {
 		c.JSON(400, gin.H{
 			"Error": "Error in string conversion",
 		})
 	}
-
 	db := config.DB
+
+	//To check the product is exist or not
+	var product models.Product
+	result := db.First(&product, productId)
+	if result.Error != nil {
+		c.JSON(404, gin.H{
+			"Message": "Product not exist",
+		})
+		return
+	}
 	Data := models.Wishlist{
-		ProductId: uint(id),
+		ProductId: uint(productId),
 		Userid:    uint(userId),
 	}
-	result := db.Create(&Data)
+	result = db.Create(&Data)
 	if result.Error != nil {
 		c.JSON(400, gin.H{
 			"Error": result.Error.Error(),
@@ -604,23 +582,25 @@ func AddCatogeries(c *gin.Context) {
 
 //Searching the catagery using catagery
 func FilteringByCatogery(c *gin.Context) {
-	id, err := strconv.Atoi(c.Query("id"))
+	cid, err := strconv.Atoi(c.Query("cid"))
 	if err != nil {
 		c.JSON(400, gin.H{
-			"Error": err.Error(),
+			"Error": "Error in string conversion ",
 		})
 	}
-	var products models.Product
+	var product models.Product
 	db := config.DB
-	result := db.First(&products).Where("catogery_id = ?", id)
+	result := db.Table("products").Select("product_name, description, price").Where("catogery_id = ? ", cid).Scan(&product).Error
 	if result != nil {
 		c.JSON(400, gin.H{
-			"Error": result.Error.Error(),
+			"Error": "Catogery does't exist",
 		})
 		return
 	}
 	c.JSON(200, gin.H{
-		"products": products,
+		"Products name": product.ProductName,
+		"Discription":   product.Description,
+		"Prince":        product.Price,
 	})
 
 }
@@ -628,21 +608,27 @@ func FilteringByCatogery(c *gin.Context) {
 //Searching the product using product name and brand name. If product name does't exist then it search using the brand name
 func SearchProduct(c *gin.Context) {
 	type Data struct {
-		SearchValue string
+		SearchValue  string
 	}
+	type product struct{
+		Product_name string
+		Description  string
+		Price        float64
+	}
+
 	var userEnterData Data
 	if c.Bind(&userEnterData) != nil {
 		c.JSON(400, gin.H{
 			"Error": "countl not bind the JSON data",
 		})
 	}
-	var products []models.Product
+	var products []product
 	db := config.DB
 	var count int64
-	result := db.Raw("SELECT * FROM products WHERE brand_id IN (SELECT id FROM brands WHERE brand_name LIKE ?)", "%"+userEnterData.SearchValue+"%").Scan(&products).Count(&count)
+	result := db.Raw("SELECT product_name,description,price FROM products WHERE brand_id IN (SELECT id FROM brands WHERE brand_name LIKE ?)", "%"+userEnterData.SearchValue+"%").Scan(&products).Count(&count)
 	if result.Error != nil {
 		c.JSON(400, gin.H{
-			"Error": result.Error.Error(),
+			"Error": "Product not exist",
 		})
 		return
 	}

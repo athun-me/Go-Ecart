@@ -22,7 +22,7 @@ func AdminRouts(c *gin.Engine) {
 
 		//User management routes
 		admin.GET("/user/viewuser", middlereware.AdminAuth, controls.ViewAllUser)
-		admin.GET("/user/searchuser/:id", middlereware.AdminAuth, controls.AdminSearchUser)
+		admin.GET("/user/searchuser", middlereware.AdminAuth, controls.AdminSearchUser)
 		admin.PUT("/user/edituserprofile/:id", middlereware.AdminAuth, controls.EditUserProfileByadmin)
 		admin.PUT("/user/blockusers", middlereware.AdminAuth, controls.AdminBlockUser)
 		admin.GET("/user/getuserprofile", middlereware.AdminAuth, controls.GetUserProfile)

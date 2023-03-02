@@ -24,7 +24,7 @@ func UserRouts(c *gin.Engine) {
 		User.POST("/userchangepassword", middlereware.UserAuth, controls.UserChangePassword)
 		User.PUT("/userchangepassword/updatepassword", middlereware.UserAuth, controls.Updatepassword)
 		User.PUT("/editprofile", middlereware.UserAuth, controls.EditUserProfilebyUser)
-		User.GET("/wishlist/:id", middlereware.UserAuth, controls.Wishlist)
+		User.GET("/product/wishlist", middlereware.UserAuth, controls.Wishlist)
 
 		//User product managment
 		User.GET("/viewbrand", middlereware.UserAuth, controls.ViewBrand)

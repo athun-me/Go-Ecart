@@ -189,6 +189,48 @@ func AddToCart(c *gin.Context) {
 }
 
 //View cart items using user id
+// func ViewCart(c *gin.Context) {
+// 	id, err := strconv.Atoi(c.GetString("userid"))
+// 	if err != nil {
+// 		c.JSON(400, gin.H{
+// 			"Error": "Error in string conversion",
+// 		})
+// 	}
+// 	type cartdata struct {
+// 		Productname string `json:"Productname"`
+// 		Quantity    uint   `json:"Quantity"`
+// 		Totalprice  uint   `json:"Totalprice"`
+// 		Image       string `json:"Image"`
+// 		Price       uint   `json:"Price"`
+// 	}
+	
+// 	db := config.DB
+// 	var datas []cartdata
+
+// 	result := db.Table("carts").
+//     Select("carts.*, products.product_name, products.price, carts.Quantity, (carts.Quantity * products.price) as total_price").
+//     Joins("INNER JOIN products ON products.product_id = carts.product_id").
+//     Where("userid = ?", id).Scan(&datas)
+
+
+
+// 	if result.Error != nil {
+// 		c.JSON(404, gin.H{
+// 			"Error": result.Error.Error(),
+// 		})
+// 		return
+// 	}
+// 	if datas != nil {
+// 		c.JSON(200, gin.H{
+// 			"Cart Items": datas,
+// 		})
+// 	} else {
+// 		c.JSON(404, gin.H{
+// 			"Message": "Cart is empty",
+// 		})
+// 	}
+// }
+
 func ViewCart(c *gin.Context) {
 	id, err := strconv.Atoi(c.GetString("userid"))
 	if err != nil {
@@ -197,23 +239,15 @@ func ViewCart(c *gin.Context) {
 		})
 	}
 	type cartdata struct {
-		Productname string `json:"Productname"`
-		Quantity    uint   `json:"Quantity"`
-		Totalprice  uint   `json:"Totalprice"`
-		Image       string `json:"Image"`
-		Price       uint   `json:"Price"`
+		Productname string
+		Quantity    uint
+		Totalprice  uint
+		Image       string
+		Price       string
 	}
-	
-	db := config.DB
 	var datas []cartdata
-
-	result := db.Table("carts").
-    Select("carts.*, products.product_name, products.price, carts.Quantity, (carts.Quantity * products.price) as total_price").
-    Joins("INNER JOIN products ON products.product_id = carts.product_id").
-    Where("userid = ?", id).Scan(&datas)
-
-
-
+	db := config.DB
+	result := db.Table("carts").Select("products.productname, carts.quantity, carts.price, carts.totalprice").Joins("INNER JOIN products ON products.productid=carts.product_id").Where("userid = ?", id).Scan(&datas)
 	if result.Error != nil {
 		c.JSON(404, gin.H{
 			"Error": result.Error.Error(),

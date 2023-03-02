@@ -1,8 +1,8 @@
 package controls
 
 import (
-	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/athunlal/config"
 	"github.com/athunlal/models"
@@ -54,55 +54,45 @@ func AdminSearchUser(c *gin.Context) {
 //<<<<<<<<<<-Admin block user->>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 func AdminBlockUser(c *gin.Context) {
-	id := c.Param("id")
+	userid, err := strconv.Atoi(c.Query("userid"))
+	if err != nil {
+		c.JSON(500, gin.H{
+			"Error": "Error occure while converting string",
+		})
+		return
+	}
 
 	var user models.User
 	db := config.DB
-	var count int64
 
-	result := db.Model(user).Where("id = ?", id).Update("isblocked", true).Count(&count)
-	if count == 0 {
-		c.JSON(500, gin.H{
-			"Message": "Could not find the users",
-		})
-		return
-	}
+	result := db.First(&user, userid)
 	if result.Error != nil {
 		c.JSON(404, gin.H{
 			"Error": result.Error.Error(),
 		})
 		return
 	}
-	fmt.Println(user.FirstName)
-	c.JSON(200, gin.H{
-		"Massage": "Blocked",
-	})
-
-}
-
-//<<<<<<<<<<-Admin unblock user->>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-func AdminUnlockUser(c *gin.Context) {
-	id := c.Param("id")
-
-	var user []models.User
-	db := config.DB
-	var count int64
-	result := db.Model(user).Where("id = ?", id).Update("isblocked", false).Count(&count)
-	if count == 0 {
-		c.JSON(500, gin.H{
-			"Message": "Could not find the users",
+	if user.Isblocked == false {
+		result := db.Model(&user).Where("id", userid).Update("isblocked", true)
+		if result.Error != nil {
+			c.JSON(404, gin.H{
+				"Error": result.Error.Error(),
+			})
+			return
+		}
+		c.JSON(200, gin.H{
+			"Message": "User blocked",
 		})
-		return
-	}
-	if result.Error != nil {
-		c.JSON(404, gin.H{
-			"Error": result.Error.Error(),
+	} else {
+		result := db.Model(&user).Where("id", userid).Update("isblocked", false)
+		if result.Error != nil {
+			c.JSON(404, gin.H{
+				"Error": result.Error.Error(),
+			})
+			return
+		}
+		c.JSON(200, gin.H{
+			"Message": "User Unblocked",
 		})
-		return
 	}
-	c.JSON(200, gin.H{
-		"Massage": "Unblocked",
-	})
-
 }

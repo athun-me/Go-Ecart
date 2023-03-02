@@ -70,7 +70,6 @@ func AdminSignup(c *gin.Context) {
 		} else {
 			c.JSON(200, gin.H{
 				"message": "Signup successful",
-				"data":    user,
 			})
 		}
 
@@ -137,6 +136,5 @@ func AdminLogin(c *gin.Context) {
 
 	c.JSON(200, gin.H{
 		"message": "Successfully Login to Admin panel",
-		"Data":    checkAdmin,
 	})
 }

@@ -13,7 +13,7 @@ func AdminRouts(c *gin.Engine) {
 		admin.POST("/login", controls.AdminLogin)
 		admin.POST("/signup", controls.AdminSignup)
 		admin.GET("/logout", middlereware.AdminAuth, controls.AdminSignout)
-		admin.GET("/getadminprofile", middlereware.AdminAuth, controls.AdminProfile)
+		admin.GET("/profile", middlereware.AdminAuth, controls.AdminProfile)
 		admin.GET("/adminvalidate", middlereware.AdminAuth, controls.ValidateAdmin)
 
 		//specification management routes
@@ -24,8 +24,7 @@ func AdminRouts(c *gin.Engine) {
 		admin.GET("/user/viewuser", middlereware.AdminAuth, controls.ViewAllUser)
 		admin.GET("/user/searchuser/:id", middlereware.AdminAuth, controls.AdminSearchUser)
 		admin.PUT("/user/edituserprofile/:id", middlereware.AdminAuth, controls.EditUserProfileByadmin)
-		admin.PUT("/user/unblockeusers/:id", middlereware.AdminAuth, controls.AdminUnlockUser)
-		admin.PUT("/user/blockusers/:id", middlereware.AdminAuth, controls.AdminBlockUser)
+		admin.PUT("/user/blockusers", middlereware.AdminAuth, controls.AdminBlockUser)
 		admin.GET("/user/getuserprofile", middlereware.AdminAuth, controls.GetUserProfile)
 
 		//product management

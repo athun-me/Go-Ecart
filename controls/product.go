@@ -41,8 +41,7 @@ func AddProduct(c *gin.Context) {
 			return
 		}
 		c.JSON(200, gin.H{
-			"Message":      "Successfully Added the Product",
-			"Product data": product,
+			"Message": "Successfully Added the Product",
 		})
 	} else {
 		c.JSON(400, gin.H{
@@ -57,9 +56,9 @@ func ViewProducts(c *gin.Context) {
 	offset, _ := strconv.Atoi(c.Query("offset"))
 	type datas struct {
 		Product_name string
-		Description string
-		Stock       string
-		Price       string
+		Description  string
+		Stock        string
+		Price        string
 		Brand_name   string
 	}
 	var products datas

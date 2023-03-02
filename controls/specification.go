@@ -48,11 +48,10 @@ func AddBrands(c *gin.Context) {
 func ViewBrand(c *gin.Context) {
 	var brandData []models.Brand
 	db := config.DB
-	result := db.Find(&brandData)
+	result := db.First(&brandData)
 	if result.Error != nil {
 		c.JSON(500, gin.H{
-			"Status":  "False",
-			"Message": "Could not retrieve the brands",
+			"Message": "Brand is empty",
 		})
 		return
 	}
@@ -198,18 +197,22 @@ func ViewCart(c *gin.Context) {
 		})
 	}
 	type cartdata struct {
-		Productname string
-		Quantity    uint
-		Totalprice  uint
-		Image       string
-		Price       string
+		Productname string `json:"Productname"`
+		Quantity    uint   `json:"Quantity"`
+		Totalprice  uint   `json:"Totalprice"`
+		Image       string `json:"Image"`
+		Price       uint   `json:"Price"`
 	}
+	
 	db := config.DB
 	var datas []cartdata
 
-	result := db.Table("carts").Select("carts.*, products.product_name, carts.Quantity").
-		Joins("INNER JOIN products ON products.product_id = carts.product_id").
-		Where("userid = ?", id).Scan(&datas)
+	result := db.Table("carts").
+    Select("carts.*, products.product_name, products.price, carts.Quantity, (carts.Quantity * products.price) as total_price").
+    Joins("INNER JOIN products ON products.product_id = carts.product_id").
+    Where("userid = ?", id).Scan(&datas)
+
+
 
 	if result.Error != nil {
 		c.JSON(404, gin.H{
@@ -567,15 +570,20 @@ func AddCatogeries(c *gin.Context) {
 
 //Searching the catagery using catagery
 func FilteringByCatogery(c *gin.Context) {
-	id := c.Param("id")
-
-	var products []models.Product
+	id, err := strconv.Atoi(c.Query("id"))
+	if err != nil {
+		c.JSON(400, gin.H{
+			"Error": err.Error(),
+		})
+	}
+	var products models.Product
 	db := config.DB
-	result := db.Where("catogery_id = ?", id).Find(&products)
-	if result.Error != nil {
+	result := db.First(&products).Where("catogery_id = ?", id)
+	if result != nil {
 		c.JSON(400, gin.H{
 			"Error": result.Error.Error(),
 		})
+		return
 	}
 	c.JSON(200, gin.H{
 		"products": products,
@@ -597,20 +605,22 @@ func SearchProduct(c *gin.Context) {
 	var products []models.Product
 	db := config.DB
 	var count int64
-	result := db.Raw("SELECT * FROM products WHERE brand_id (SELECT id FROM brands WHERE brandname LIKE ?)", "%"+userEnterData.SearchValue+"%").Scan(&products).Count(&count)
+	result := db.Raw("SELECT * FROM products WHERE brand_id IN (SELECT id FROM brands WHERE brand_name LIKE ?)", "%"+userEnterData.SearchValue+"%").Scan(&products).Count(&count)
 	if result.Error != nil {
 		c.JSON(400, gin.H{
 			"Error": result.Error.Error(),
 		})
+		return
 	}
 
 	if count <= 0 {
-		result := db.Raw("SELECT * FROM products WHERE productname LIKE ?", "%"+userEnterData.SearchValue+"%").Find(&products)
+		result := db.Raw("SELECT * FROM products WHERE product_name LIKE ?", "%"+userEnterData.SearchValue+"%").Find(&products)
 		if result.Error != nil {
 			c.JSON(400, gin.H{
 				"Error": result.Error.Error(),
 			})
 		}
+		return
 	}
 
 	if count == 0 {

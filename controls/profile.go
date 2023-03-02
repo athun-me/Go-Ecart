@@ -23,9 +23,7 @@ func GetUserProfile(c *gin.Context) {
 	result := db.First(&userData, id)
 	if result.Error != nil {
 		c.JSON(404, gin.H{
-			"Error":   result.Error.Error(),
 			"Message": "User not exist",
-			"Status":  "false",
 		})
 		return
 	}
@@ -34,7 +32,7 @@ func GetUserProfile(c *gin.Context) {
 		"Last Name":    userData.LastName,
 		"Email":        userData.Email,
 		"Phone number": userData.PhoneNumber,
-		"Is Block" : userData.Isblocked,
+		"Is Block":     userData.Isblocked,
 	})
 
 }
@@ -77,10 +75,16 @@ func EditUserProfileByadmin(c *gin.Context) {
 
 //>>>>>>>>>>> Admin profile <<<<<<<<<<<<<<<<<<<<<<<
 func AdminProfile(c *gin.Context) {
-	id := c.Query("adminId")
+	adminid, err := strconv.Atoi(c.GetString("adminid"))
+	if err != nil {
+		c.JSON(400, gin.H{
+			"Error": "Error in string conversion ",
+		})
+		return
+	}
 	var user_data models.Admin
 	db := config.DB
-	result := db.First(&user_data, id)
+	result := db.First(&user_data, adminid)
 	if result.Error != nil {
 		c.JSON(404, gin.H{
 			"Error":   result.Error.Error(),

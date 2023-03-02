@@ -32,9 +32,9 @@ func UserRouts(c *gin.Engine) {
 		User.GET("/viewproducts", middlereware.UserAuth, controls.ViewProducts)
 
 		//User carts routes
-		User.GET("/viewcart", middlereware.UserAuth, controls.ViewCart)
+		User.GET("/profile/viewcart", middlereware.UserAuth, controls.ViewCart)
 		User.POST("/profile/addtocart", middlereware.UserAuth, controls.AddToCart)
-		User.GET("/fileterbycatogery/:id", middlereware.UserAuth, controls.FilteringByCatogery)
+		User.GET("/fileterbycatogery", middlereware.UserAuth, controls.FilteringByCatogery)
 		User.GET("/cart/checkout", middlereware.UserAuth, controls.CheckOut)
 		User.DELETE("/deletecart/:id", middlereware.UserAuth, controls.DeleteCart)
 

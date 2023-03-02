@@ -47,7 +47,7 @@ func UserSignUP(c *gin.Context) {
 	db := config.DB
 	result := db.First(&temp_user, "email LIKE ?", Data.Email).Error
 
-	if result.Error != nil {
+	if result != nil {
 		user := models.User{
 
 			FirstName:   Data.Firstname,
@@ -268,7 +268,10 @@ func ShowUserDetails(c *gin.Context) {
 	}
 	c.JSON(202, gin.H{
 
-		"User profile": userData,
+		"First name": userData.FirstName,
+		"Last name":  userData.LastName,
+		"Emial":      userData.Email,
+		"Phone number": userData.PhoneNumber,
 	})
 }
 

@@ -222,8 +222,8 @@ func ViewCart(c *gin.Context) {
 		})
 		return
 	}
-	fmt.Println("this is the slice : ", datas)
-	if len(datas) > 0 {
+	fmt.Println("this is carts data : ", datas)
+	if datas != nil {
 		c.JSON(200, gin.H{
 			"Cart Items": datas,
 		})
@@ -232,6 +232,7 @@ func ViewCart(c *gin.Context) {
 			"Message": "Cart is empty",
 		})
 	}
+
 }
 
 //Delete cart of a perticular user id
@@ -608,9 +609,9 @@ func FilteringByCatogery(c *gin.Context) {
 //Searching the product using product name and brand name. If product name does't exist then it search using the brand name
 func SearchProduct(c *gin.Context) {
 	type Data struct {
-		SearchValue  string
+		SearchValue string
 	}
-	type product struct{
+	type product struct {
 		Product_name string
 		Description  string
 		Price        float64

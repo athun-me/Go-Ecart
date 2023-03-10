@@ -59,7 +59,7 @@ Below is the APIs used in the application and some examples along with it.
 ## 👉 Signup as user 
   ### Endpoint :
   ```
-  http://43.207.185.37
+  http://43.207.185.37:5000/user/signup
   ```  
   ### Method:
   `POST`
@@ -75,8 +75,8 @@ Below is the APIs used in the application and some examples along with it.
   
   ### Example Request:
   ```
-   POST http://43.207.185.37/user/signup \
-  -H "Content-Type: application/json" \
+   POST http://43.207.185.37/user/signup 
+  -H "Content-Type: application/json" 
   -d '{
       "firstname" : "Tony",
       "lastname": "Stark",
@@ -98,7 +98,7 @@ Below is the APIs used in the application and some examples along with it.
 ## 👉 To verify the otp
   ### Endpoint :
   ```
-  http://43.207.185.37/user/signup/otpvalidate
+  http://43.207.185.37:5000/user/signup/otpvalidate
   ```  
   ### Method:
   `POST`
@@ -114,7 +114,7 @@ Below is the APIs used in the application and some examples along with it.
  
   ### Example Request:
   ```
-   POST  http://43.207.185.37/user/signup/otpvalidate\
+   POST  http://43.207.185.37:5000/user/signup/otpvalidate\
   -H "Content-Type: application/json" \
   -d '{
          "otp" : "1904",
@@ -133,7 +133,7 @@ Below is the APIs used in the application and some examples along with it.
 ## 👉 To login as a user
   ### Endpoint :
   ```
-    http://43.207.185.37/user/login
+    http://43.207.185.37:5000/user/login
   ```  
   ### Method:
   `POST`
@@ -146,7 +146,7 @@ Below is the APIs used in the application and some examples along with it.
   
  ### Example Request:
   ```
-   POST  http://43.207.185.37/user/signup/otpvalidate\
+   POST  http://43.207.185.37:5000/user/signup/otpvalidate\
   -H "Content-Type: application/json" \
   -d '{
         "email" : "tony@yopmail.com",

@@ -16,9 +16,9 @@ func init() {
 	var err error
 	config.DB, err = config.DBconnect()
 	if err != nil {
-        panic(err)
-    }
-	
+		panic(err)
+	}
+
 	R.LoadHTMLGlob("templates/*.html")
 }
 

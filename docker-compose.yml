@@ -1,0 +1,34 @@
+version: "3.9"
+
+services:
+  myapp:
+    build: .
+    ports:
+      - "9001:${PORT}"
+    depends_on:
+      - db
+    restart: always
+    environment:
+      DB_URL: ${DB_URL}
+      SECRET: ${SECRET}
+      RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID}
+      RAZORPAY_SECRET: ${RAZORPAY_SECRET}
+      EMAIL: ${EMAIL}
+      PASSWORD: ${PASSWORD}
+    networks:
+      - my-network
+
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: myapp_db
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "2000:5432"
+    networks:
+      - my-network
+
+networks:
+  my-network:

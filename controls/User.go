@@ -98,6 +98,13 @@ func UesrLogin(c *gin.Context) {
 	var checkUser models.User
 	db := config.DB
 	result := db.First(&checkUser, "email LIKE ?", user.Email)
+	if result.Error != nil {
+		c.JSON(404, gin.H{
+			"Status":  "false",
+			"Message": result.Error.Error(),
+		})
+		return
+	}
 
 	if checkUser.Isblocked == true {
 		c.JSON(401, gin.H{
@@ -106,14 +113,7 @@ func UesrLogin(c *gin.Context) {
 		})
 		return
 	}
-
-	if result.Error != nil {
-		c.JSON(404, gin.H{
-			"Status":  "false",
-			"Message": "User not exit",
-		})
-		return
-	}
+	
 
 	err := bcrypt.CompareHashAndPassword([]byte(checkUser.Password), []byte(user.Password))
 	if err != nil {
@@ -268,9 +268,9 @@ func ShowUserDetails(c *gin.Context) {
 	}
 	c.JSON(202, gin.H{
 
-		"First name": userData.FirstName,
-		"Last name":  userData.LastName,
-		"Emial":      userData.Email,
+		"First name":   userData.FirstName,
+		"Last name":    userData.LastName,
+		"Emial":        userData.Email,
 		"Phone number": userData.PhoneNumber,
 	})
 }

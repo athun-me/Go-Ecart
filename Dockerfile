@@ -1,11 +1,18 @@
-FROM golang:1.16-alpine
+FROM golang:latest
 
 WORKDIR /app
 
 COPY . /app
 
+COPY .env /app
+
+
+COPY go.mod go.sum ./
+
+RUN go mod download
+
 RUN go build -o myapp .
 
-EXPOSE 8080
+EXPOSE $PORT
 
 CMD ["./myapp"]

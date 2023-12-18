@@ -100,8 +100,6 @@
     }
 
     function verifyPayment(res, userid, orderid) {
-      console.log("-------verify payment--------")
-      console.log("----------response" + res, userid, orderid)
       $.ajax({
 
         //passes details as url params
@@ -111,11 +109,9 @@
 
         success: (response) => {
           if (response.status) {
-            console.log('test success')
             const id = response.paymentid
             location.href = `/user/success?id=${id}&cid=${coupon}`
           } else {
-            console.log('test failed')
             swal({
               title: "Sorry, Payment Failed",
               icon: 'warning',

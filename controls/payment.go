@@ -11,6 +11,7 @@ import (
 	"github.com/athunlal/models"
 	"github.com/gin-gonic/gin"
 	"github.com/razorpay/razorpay-go"
+	// "github.com/razorpay/razorpay-go"
 )
 
 func DeleteCartItems(c *gin.Context) {
@@ -167,7 +168,7 @@ func Razorpay(c *gin.Context) {
 	}
 
 	//To rendering the html page with user&payment details
-	value := body["id"]
+	value := body["id"].(string)
 
 	c.HTML(200, "app.html", gin.H{
 		"userid":     userdata.ID,
@@ -202,6 +203,7 @@ func RazorpaySuccess(c *gin.Context) {
 		RazorPayOrderID: orderid,
 		AmountPaid:      totalamount,
 	}
+
 	result := db.Create(&Rpay)
 	if result.Error != nil {
 		c.JSON(400, gin.H{
@@ -230,6 +232,7 @@ func RazorpaySuccess(c *gin.Context) {
 		Date:          todyDate,
 		Totalamount:   uint(totalprice),
 	}
+
 	result1 := db.Create(&paymentdata)
 	if result1.Error != nil {
 		c.JSON(400, gin.H{
@@ -247,7 +250,6 @@ func RazorpaySuccess(c *gin.Context) {
 		return
 	}
 	pid := paymentdata.PaymentId
-
 	oderData := models.Oder_item{
 		UserIdNo:    uint(userID),
 		TotalAmount: uint(totalprice),

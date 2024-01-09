@@ -19,7 +19,6 @@ func AddProduct(c *gin.Context) {
 		c.JSON(400, gin.H{
 			"error": "Data binding error",
 		})
-		fmt.Println(err)
 		return
 	}
 

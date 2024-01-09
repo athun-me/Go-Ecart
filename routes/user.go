@@ -10,11 +10,10 @@ func UserRouts(c *gin.Engine) {
 	User := c.Group("/user")
 	{
 
-		//User rountes
+		//User rountes >>
 		User.POST("/login", controls.UesrLogin)
 		User.POST("/signup", controls.UserSignUP)
 		User.POST("/signup/otpvalidate", controls.OtpValidation)
-		User.GET("/logout", middlereware.UserAuth, controls.UserSignout)
 
 		//User profile routes
 		User.GET("/viewprofile", middlereware.UserAuth, controls.ShowUserDetails)
@@ -39,15 +38,15 @@ func UserRouts(c *gin.Engine) {
 		User.DELETE("/deletecart/:id", middlereware.UserAuth, controls.DeleteCart)
 
 		//Oder managements by user
-		User.GET("/showoder", middlereware.UserAuth, controls.ShowOder)
-		User.GET("/order/showoder/return/", middlereware.UserAuth, controls.ReturnOrderByUser)
-		User.GET("/order/showoder/canceloder", middlereware.UserAuth, controls.CancelOrder)
+		User.GET("/showorder", middlereware.UserAuth, controls.ShowOder)
+		User.GET("/order/return", middlereware.UserAuth, controls.ReturnOrderByUser)
+		User.GET("/order/cancelorder", middlereware.UserAuth, controls.CancelOrder)
 
 		//Coupon management
 		User.POST("/applycoupon", middlereware.UserAuth, controls.Applycoupon)
 		User.POST("/checkcoupon", middlereware.UserAuth, controls.CheckCoupon)
 
-		//Forgot Password
+		//Forgot Password >>
 		User.PUT("/forgotpassword", middlereware.UserAuth, controls.GenerateOtpForForgotPassword)
 		User.POST("/forgotpassword/changepassword", middlereware.UserAuth, controls.ChangePassword)
 

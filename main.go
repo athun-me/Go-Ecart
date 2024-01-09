@@ -26,8 +26,6 @@ var R = gin.Default()
 
 func main() {
 
-	gin.SetMode(gin.ReleaseMode)
-
 	routes.AdminRouts(R)
 	routes.UserRouts(R)
 

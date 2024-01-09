@@ -30,6 +30,7 @@ func AddBrands(c *gin.Context) {
 		})
 		return
 	}
+	fmt.Println("================", addbrand.BrandName)
 	DB := config.DB
 	result := DB.Create(&addbrand)
 	if result.Error != nil {
@@ -268,8 +269,7 @@ func DeleteCart(c *gin.Context) {
 //Add image of the product by admin
 func AddImages(c *gin.Context) {
 	imagepath, _ := c.FormFile("image")
-	pidconv := c.PostForm("product_id")
-	pid, _ := strconv.Atoi(pidconv)
+	pid, _ := strconv.Atoi(c.PostForm("product_id"))
 
 	db := config.DB
 	var product models.Product
@@ -980,7 +980,6 @@ func CovertingExelToPdf(c *gin.Context) {
 		return
 	}
 
-	fmt.Println("PDF saved successfully.")
 }
 
 func DownloadExel(c *gin.Context) {

@@ -3,19 +3,21 @@ version: "3"
 services:
   db:
     image: postgres
+    container_name: ecomdb
     restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: athun
-      POSTGRES_DB: ecom5
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=athun123
+      - POSTGRES_DB=ecom
     ports:
-      - "5437:5432"
+      - "5433:5432"
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
     networks:
-      - my-network
+      - ecom-network
 
   app:
-    build: .
-    image: athunlal/myapp:latest
+    image: athunlal/ecomapp:latest
     ports:
       - "9001:${PORT}"
     depends_on:
@@ -24,12 +26,8 @@ services:
     environment:
       DB_URL: ${DB_URL}
     networks:
-      - my-network
-
-  
+      - ecom-network
 
 networks:
-  my-network:
+  ecom-network:
     driver: bridge
-
-

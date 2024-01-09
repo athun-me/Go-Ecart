@@ -1,15 +1,15 @@
-FROM golang:latest
+FROM golang:latest 
 
 WORKDIR /app
-
-COPY . /app
 
 COPY go.mod go.sum ./
 
 RUN go mod download
 
-RUN go build -o myapp .
+COPY . .
 
-EXPOSE $PORT
+RUN go build -o myapp
+
+EXPOSE 9001
 
 CMD ["./myapp"]

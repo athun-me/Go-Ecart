@@ -23,6 +23,8 @@ services:
     depends_on:
       - db
     restart: always
+    environment:
+      DB_URL: "host=ecomdb user=postgres password=athun123 dbname=ecom port=5432 sslmode=disable TimeZone=Asia/Shanghai"
     networks:
       - ecom-network
 

@@ -19,12 +19,10 @@ services:
   app:
     image: athunlal/ecomapp:latest
     ports:
-      - "9001:${PORT}"
+      - "9001:4000"
     depends_on:
       - db
     restart: always
-    environment:
-      DB_URL: ${DB_URL}
     networks:
       - ecom-network
 

@@ -48,7 +48,6 @@ API platforms Postman is used to run all the API's Provided by this project
 
 ### API Documentation
 ```
-https://documenter.getpostman.com/view/23476254/2s8YzL46Xq
 ```
 
 

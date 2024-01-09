@@ -21,7 +21,7 @@ type Product struct {
 
 type Brand struct {
 	ID        uint   `json:"id" gorm:"primaryKey"  `
-	BrandName string `JSON:"BrandName" gorm:"not null"`
+	BrandName string `JSON:"brand_name" gorm:"not null"`
 }
 
 type Cart struct {

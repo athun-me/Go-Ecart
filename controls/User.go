@@ -34,6 +34,12 @@ func UserSignUP(c *gin.Context) {
 		})
 		return
 	}
+	if Data.Email == "" {
+		c.JSON(400, gin.H{
+			"error": "Data binding error",
+		})
+		return
+	}
 	var temp_user models.User
 	hash, err := bcrypt.GenerateFromPassword([]byte(Data.Password), 10)
 	if err != nil {
@@ -113,7 +119,6 @@ func UesrLogin(c *gin.Context) {
 		})
 		return
 	}
-	
 
 	err := bcrypt.CompareHashAndPassword([]byte(checkUser.Password), []byte(user.Password))
 	if err != nil {
@@ -135,15 +140,6 @@ func UesrLogin(c *gin.Context) {
 		"message": "User login successfully",
 	})
 
-}
-
-//>>>>>>>>>>>>>>> User logout <<<<<<<<<<<<<<<<<<<<<<<<
-
-func UserSignout(c *gin.Context) {
-	c.SetCookie("UserAutherization", "", -1, "", "", false, false)
-	c.JSON(200, gin.H{
-		"Message": "User Successfully  Log Out",
-	})
 }
 
 //>>>>>>>>>>>>>>> Validate <<<<<<<<<<<<<<<<<<<<<<<<<<<<

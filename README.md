@@ -97,7 +97,7 @@ Below is the APIs used in the application and some examples along with it.
 ## 👉 To verify the otp
   ### Endpoint :
   ```
-  http://43.207.185.37:5000/user/signup/otpvalidate
+  http://localhost:5000/user/signup/otpvalidate
   ```  
   ### Method:
   `POST`

@@ -37,7 +37,7 @@ func UserAuth(c *gin.Context) {
 	if err != nil {
 		c.JSON(500, gin.H{
 			"Status": "False",
-			"Error": "Error occured while token genaration",
+			"Error":  "Error occured while token genaration",
 		})
 	}
 
